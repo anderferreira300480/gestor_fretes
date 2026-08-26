@@ -35,3 +35,36 @@ class Transportadora(db.Model):
 
     # Permite acessar todas as cotações feitas por esta transportadora
     cotacoes = db.relationship('CotacaoFrete', backref='transportadora', lazy=True)
+
+class Pedido(db.Model):
+    __tablename__ = 'pedidos'
+
+    id = db.Column(db.Integer, primary_key=True)
+    # Rastreável para relatórios futuros com index=True
+    numero_pedido_compra = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    fornecedor = db.Column(db.String(150), nullable=False)
+    valor_mercadoria = db.Column(db.Float, nullable=True)
+    peso_kg = db.Column(db.Float, nullable=True)
+    status = db.Column(db.String(30), default='Em Cotação', nullable=False)
+    data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Vínculo com a empresa solicitante
+    empresa_id = db.Column(db.Integer, db.ForeignKey('empresas.id'), nullable=False)
+    
+    # Permite acessar todas as cotações deste pedido: pedido.cotacoes
+    cotacoes = db.relationship('CotacaoFrete', backref='pedido', lazy=True, cascade="all, delete-orphan")
+
+
+class CotacaoFrete(db.Model):
+    __tablename__ = 'cotacoes_fretes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    valor_cotado = db.Column(db.Float, nullable=False)
+    prazo_dias = db.Column(db.Integer, nullable=False)
+    observacoes = db.Column(db.String(255), nullable=True) # Anotações sobre a proposta do e-mail
+    vencedor = db.Column(db.Boolean, default=False, nullable=False)
+    data_registro = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Chaves Estrangeiras (Liga o Pedido à Transportadora que deu a proposta)
+    pedido_id = db.Column(db.Integer, db.ForeignKey('pedidos.id'), nullable=False)
+    transportadora_id = db.Column(db.Integer, db.ForeignKey('transportadoras.id'), nullable=False)    
