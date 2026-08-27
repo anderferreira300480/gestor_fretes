@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Topbar KPI & Botão Novo Pedido -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex gap-3">
+        <div class="card shadow-sm px-3 py-2 border-0">
+            <small class="text-muted fw-bold">Pedidos Ativos</small>
+            <h4 class="mb-0 text-primary">{{ total_ativos }}</h4>
+        </div>
+        <div class="card shadow-sm px-3 py-2 border-0">
+            <small class="text-muted fw-bold">Economia Total</small>
+            <h4 class="mb-0 text-success">R$ 12.5K</h4>
+        </div>
+        <div class="card shadow-sm px-3 py-2 border-0">
+            <small class="text-muted fw-bold">Valor Médio Frete</small>
+            <h4 class="mb-0 text-info">R$ 510</h4>
+        </div>
+    </div>
+    <a href="/pedidos/novo" class="btn btn-primary btn-lg font-weight-bold">+ NOVO PEDIDO</a>
+</div>
+
+<!-- Grid Kanban (5 Colunas) -->
+<div class="row g-2">
+
+    <!-- 1. Em Cotação -->
+    <div class="col">
+        <div class="card border-0 bg-warning-subtle">
+            <div class="card-header bg-warning text-dark text-center fw-bold">Em Cotação</div>
+            <div class="card-body p-2" style="min-height: 500px;">
+                {% for p in kanban.em_cotacao %}
+                    <a href="/pedidos/{{ p.id }}" class="text-decoration-none text-dark">
+                        <div class="card shadow-sm mb-2 p-2 border-0 card-hover">
+                            <small class="fw-bold text-primary">{{ p.empresa.razao_social if p.empresa else 'CNPJ: Unidade' }}</small>
+                            <small><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                            <small><b>Fornecedor:</b> {{ p.fornecedor }}</small>
+                            <small><b>Valor:</b> R$ {{ p.valor_mercadoria or '0.00' }}</small>
+                            <div class="d-flex justify-content-between mt-2 pt-1 border-top">
+                                <span class="btn btn-xs btn-outline-secondary py-0">📎 Anexo NF</span>
+                                <span class="text-muted">⏱ Prazos</span>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Aguardando Coleta -->
+    <div class="col">
+        <div class="card border-0 bg-light-subtle">
+            <div class="card-header bg-warning-emphasis text-white text-center fw-bold">Aguardando Coleta</div>
+            <div class="card-body p-2" style="min-height: 500px;">
+                {% for p in kanban.aguardando_coleta %}
+                    <a href="/pedidos/{{ p.id }}" class="text-decoration-none text-dark">
+                        <div class="card shadow-sm mb-2 p-2 border-0 card-hover">
+                            <small class="fw-bold text-primary">{{ p.empresa.razao_social if p.empresa else 'CNPJ: Unidade' }}</small>
+                            <small><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                            <small><b>Fornecedor:</b> {{ p.fornecedor }}</small>
+                            <small><b>Valor:</b> R$ {{ p.valor_mercadoria or '0.00' }}</small>
+                            <div class="d-flex justify-content-between mt-2 pt-1 border-top">
+                                <span class="btn btn-xs btn-outline-secondary py-0">📎 Anexo NF</span>
+                                <span class="text-muted">⏱ Prazos</span>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Em Trânsito -->
+    <div class="col">
+        <div class="card border-0 bg-info-subtle">
+            <div class="card-header bg-primary text-white text-center fw-bold">Em Trânsito</div>
+            <div class="card-body p-2" style="min-height: 500px;">
+                {% for p in kanban.em_transito %}
+                    <a href="/pedidos/{{ p.id }}" class="text-decoration-none text-dark">
+                        <div class="card shadow-sm mb-2 p-2 border-0 card-hover">
+                            <small class="fw-bold text-primary">{{ p.empresa.razao_social if p.empresa else 'CNPJ: Unidade' }}</small>
+                            <small><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                            <small><b>Fornecedor:</b> {{ p.fornecedor }}</small>
+                            <small><b>Valor:</b> R$ {{ p.valor_mercadoria or '0.00' }}</small>
+                            <div class="d-flex justify-content-between mt-2 pt-1 border-top">
+                                <span class="btn btn-xs btn-outline-secondary py-0">📎 Anexo NF</span>
+                                <span class="text-muted">⏱ Prazos</span>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Entregue -->
+    <div class="col">
+        <div class="card border-0 bg-success-subtle">
+            <div class="card-header bg-success text-white text-center fw-bold">Entregue</div>
+            <div class="card-body p-2" style="min-height: 500px;">
+                {% for p in kanban.entregue %}
+                    <a href="/pedidos/{{ p.id }}" class="text-decoration-none text-dark">
+                        <div class="card shadow-sm mb-2 p-2 border-0 card-hover">
+                            <small class="fw-bold text-primary">{{ p.empresa.razao_social if p.empresa else 'CNPJ: Unidade' }}</small>
+                            <small><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                            <small><b>Fornecedor:</b> {{ p.fornecedor }}</small>
+                            <small><b>Valor:</b> R$ {{ p.valor_mercadoria or '0.00' }}</small>
+                            <div class="d-flex justify-content-between mt-2 pt-1 border-top">
+                                <span class="btn btn-xs btn-outline-secondary py-0">📎 Anexo NF</span>
+                                <span class="text-muted">⏱ Prazos</span>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Ocorrência/Sinistro -->
+    <div class="col">
+        <div class="card border-0 bg-danger-subtle">
+            <div class="card-header bg-danger text-white text-center fw-bold">Ocorrência/Sinistro</div>
+            <div class="card-body p-2" style="min-height: 500px;">
+                {% for p in kanban.ocorrencia %}
+                    <a href="/pedidos/{{ p.id }}" class="text-decoration-none text-dark">
+                        <div class="card shadow-sm mb-2 p-2 border-0 card-hover">
+                            <small class="fw-bold text-primary">{{ p.empresa.razao_social if p.empresa else 'CNPJ: Unidade' }}</small>
+                            <small><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                            <small><b>Fornecedor:</b> {{ p.fornecedor }}</small>
+                            <small><b>Valor:</b> R$ {{ p.valor_mercadoria or '0.00' }}</small>
+                            <div class="d-flex justify-content-between mt-2 pt-1 border-top">
+                                <span class="btn btn-xs btn-outline-secondary py-0">📎 Anexo NF</span>
+                                <span class="text-muted">⏱ Prazos</span>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
