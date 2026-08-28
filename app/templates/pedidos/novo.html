@@ -1,40 +1,215 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="card shadow-sm col-md-8 mx-auto">
+<div class="card shadow-sm col-md-10 mx-auto mb-5">
     <div class="card-header bg-primary text-white">
         <h4 class="mb-0">Cadastrar Novo Pedido de Compra</h4>
     </div>
     <div class="card-body">
         <form method="POST" action="/pedidos/novo">
-            <div class="mb-3">
-                <label class="form-label">Número do Pedido de Compra</label>
-                <input type="text" name="numero_pedido_compra" class="form-control" placeholder="Ex: PC-1002" required>
+            <!-- DADOS DO PEDIDO -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Número do Pedido de Compra</label>
+                    <input type="text" name="numero_pedido_compra" class="form-control" placeholder="Ex: PC-1002" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-bold">Valor Mercadoria (R$)</label>
+                    <input type="number" step="0.01" name="valor_mercadoria" class="form-control" placeholder="0.00">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-bold">Peso Total (kg)</label>
+                    <input type="number" step="0.01" name="peso_kg" class="form-control" placeholder="0.00">
+                </div>
             </div>
+
+            <hr class="my-4">
+
+            <!-- TÓPICO 1: EMPRESA COMPRADORA (DESTINO) -->
+            <h5 class="text-primary mb-3">1. Empresa Compradora (Destino)</h5>
             <div class="mb-3">
-                <label class="form-label">Empresa Compradora</label>
-                <select name="empresa_id" class="form-select" required>
+                <label class="form-label fw-semibold">Selecionar Empresa</label>
+                <select id="empresa_select" name="empresa_id" class="form-select" required>
                     <option value="">Selecione a empresa...</option>
-                    {% for empresa in empresas %}
-                        <option value="{{ empresa.id }}">{{ empresa.razao_social }} ({{ empresa.cnpj }})</option>
+                    {% for e in empresas %}
+                        <option value="{{ e.id }}" 
+                                data-endereco="{{ e.endereco or '' }}" 
+                                data-numero="{{ e.numero or '' }}" 
+                                data-bairro="{{ e.bairro or '' }}"
+                                data-cidade="{{ e.cidade or '' }}" 
+                                data-estado="{{ e.estado or '' }}">
+                            {{ e.razao_social }} ({{ e.cnpj }})
+                        </option>
                     {% endfor %}
                 </select>
             </div>
+            
+            <!-- Endereço da Empresa (Autopreenchido) -->
+            <div class="row bg-light p-3 rounded mb-3 border">
+                <div class="col-md-4 mb-2">
+                    <label class="form-label text-muted small">Endereço</label>
+                    <input type="text" id="empresa_endereco" class="form-control form-control-sm bg-white" readonly>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label text-muted small">Número</label>
+                    <input type="text" id="empresa_numero" class="form-control form-control-sm bg-white" readonly>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label text-muted small">Bairro</label>
+                    <input type="text" id="empresa_bairro" class="form-control form-control-sm bg-white" readonly>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label text-muted small">Cidade</label>
+                    <input type="text" id="empresa_cidade" class="form-control form-control-sm bg-white" readonly>
+                </div>
+                <div class="col-md-1 mb-2">
+                    <label class="form-label text-muted small">UF</label>
+                    <input type="text" id="empresa_estado" class="form-control form-control-sm bg-white" readonly>
+                </div>
+            </div>
+
+            <!-- Contato da Empresa (Preenchimento Manual) -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Nome de Contato</label>
+                    <input type="text" name="empresa_contato_nome" class="form-control" placeholder="Responsável pelo recebimento">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">E-mail</label>
+                    <input type="email" name="empresa_contato_email" class="form-control" placeholder="email@empresa.com">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Telefone / WhatsApp</label>
+                    <!-- Campo com a máscara dinâmica aplicada -->
+                    <input type="text" 
+                           name="empresa_contato_telefone" 
+                           class="form-control" 
+                           placeholder="(00) 00000-0000" 
+                           maxlength="15" 
+                           oninput="mascaraTelefone(this)">
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- TÓPICO 2: FORNECEDOR (ORIGEM/COLETA) -->
+            <h5 class="text-primary mb-3">2. Fornecedor (Origem/Coleta)</h5>
             <div class="mb-3">
-                <label class="form-label">Fornecedor</label>
-                <input type="text" name="fornecedor" class="form-control" placeholder="Razão social do fornecedor" required>
+                <label class="form-label fw-semibold">Selecionar Fornecedor</label>
+                <select id="fornecedor_select" name="fornecedor_id" class="form-select" required>
+                    <option value="">Selecione o fornecedor...</option>
+                    {% for f in fornecedores %}
+                        <option value="{{ f.id }}" 
+                                data-endereco="{{ f.endereco or '' }}" 
+                                data-numero="{{ f.numero or '' }}" 
+                                data-bairro="{{ f.bairro or '' }}"
+                                data-cidade="{{ f.cidade or '' }}" 
+                                data-estado="{{ f.estado or '' }}"
+                                data-contato="{{ f.nome_contato or '' }}"
+                                data-email="{{ f.email or '' }}"
+                                data-telefone="{{ f.telefone or '' }}">
+                            {{ f.razao_social }} ({{ f.cnpj }})
+                        </option>
+                    {% endfor %}
+                </select>
             </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Valor Mercadoria (R$)</label>
-                    <input type="number" step="0.01" name="valor_mercadoria" class="form-control">
+
+            <!-- Dados Completos do Fornecedor (Autopreenchido do Cadastro) -->
+            <div class="bg-light p-3 rounded mb-4 border">
+                <div class="row mb-3">
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label text-muted small">Endereço de Origem</label>
+                        <input type="text" id="fornecedor_endereco" class="form-control form-control-sm bg-white" readonly>
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <label class="form-label text-muted small">Número</label>
+                        <input type="text" id="fornecedor_numero" class="form-control form-control-sm bg-white" readonly>
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <label class="form-label text-muted small">Bairro</label>
+                        <input type="text" id="fornecedor_bairro" class="form-control form-control-sm bg-white" readonly>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Cidade</label>
+                        <input type="text" id="fornecedor_cidade" class="form-control form-control-sm bg-white" readonly>
+                    </div>
+                    <div class="col-md-1 mb-2">
+                        <label class="form-label text-muted small">UF</label>
+                        <input type="text" id="fornecedor_estado" class="form-control form-control-sm bg-white" readonly>
+                    </div>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Peso Total (kg)</label>
-                    <input type="number" step="0.01" name="peso_kg" class="form-control">
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label text-muted small">Nome de Contato</label>
+                        <input type="text" id="fornecedor_contato" class="form-control form-control-sm bg-white" readonly>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label text-muted small">E-mail</label>
+                        <input type="text" id="fornecedor_email" class="form-control form-control-sm bg-white" readonly>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label text-muted small">Telefone</label>
+                        <input type="text" id="fornecedor_telefone" class="form-control form-control-sm bg-white" readonly>
+                    </div>
                 </div>
             </div>
-            <button type="submit" class="btn btn-success w-100">Criar Pedido</button>
+
+            <button type="submit" class="btn btn-success btn-lg w-100 mt-3">Criar Pedido de Compra</button>
         </form>
     </div>
 </div>
+
+<!-- SCRIPT DE AUTOPREENCHIMENTO E MÁSCARA -->
+<script>
+    // 1. Empresa: Autopreencher somente os campos de endereço
+    document.getElementById('empresa_select').addEventListener('change', function() {
+        let opt = this.options[this.selectedIndex];
+        document.getElementById('empresa_endereco').value = opt.getAttribute('data-endereco') || '';
+        document.getElementById('empresa_numero').value = opt.getAttribute('data-numero') || '';
+        document.getElementById('empresa_bairro').value = opt.getAttribute('data-bairro') || '';
+        document.getElementById('empresa_cidade').value = opt.getAttribute('data-cidade') || '';
+        document.getElementById('empresa_estado').value = opt.getAttribute('data-estado') || '';
+    });
+
+    // 2. Fornecedor: Autopreencher Endereço + Contato do Cadastro
+    document.getElementById('fornecedor_select').addEventListener('change', function() {
+        let opt = this.options[this.selectedIndex];
+        document.getElementById('fornecedor_endereco').value = opt.getAttribute('data-endereco') || '';
+        document.getElementById('fornecedor_numero').value = opt.getAttribute('data-numero') || '';
+        document.getElementById('fornecedor_bairro').value = opt.getAttribute('data-bairro') || '';
+        document.getElementById('fornecedor_cidade').value = opt.getAttribute('data-cidade') || '';
+        document.getElementById('fornecedor_estado').value = opt.getAttribute('data-estado') || '';
+        
+        document.getElementById('fornecedor_contato').value = opt.getAttribute('data-contato') || '';
+        document.getElementById('fornecedor_email').value = opt.getAttribute('data-email') || '';
+        
+        // Formata o telefone vindo do cadastro ao autopreencher
+        let telOriginal = opt.getAttribute('data-telefone') || '';
+        document.getElementById('fornecedor_telefone').value = aplicarMascaraTexto(telOriginal);
+    });
+
+    // Função para aplicar máscara em tempo de digitação
+    function mascaraTelefone(input) {
+        input.value = aplicarMascaraTexto(input.value);
+    }
+
+    // Lógica da máscara para telefones de 10 ou 11 dígitos (fixo ou celular)
+    function aplicarMascaraTexto(valor) {
+        if (!valor) return '';
+        
+        // Remove tudo que não for número
+        let nums = valor.replace(/\D/g, '');
+        
+        // Limita a 11 dígitos
+        nums = nums.substring(0, 11);
+        
+        // Aplica a formatação conforme a quantidade de números inseridos
+        if (nums.length === 0) return '';
+        if (nums.length <= 2) return `(${nums}`;
+        if (nums.length <= 6) return `(${nums.substring(0, 2)}) ${nums.substring(2)}`;
+        if (nums.length <= 10) return `(${nums.substring(0, 2)}) ${nums.substring(2, 6)}-${nums.substring(6)}`;
+        
+        // Caso tenhamos 11 dígitos (Celular / WhatsApp)
+        return `(${nums.substring(0, 2)}) ${nums.substring(2, 7)}-${nums.substring(7)}`;
+    }
+</script>
 {% endblock %}

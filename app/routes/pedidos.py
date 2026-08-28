@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.database import db
-from app.models import Pedido, Empresa, Transportadora
+from app.models import Pedido, Empresa, Fornecedor, Transportadora
 
 pedidos_bp = Blueprint('pedidos', __name__, url_prefix='/pedidos')
 
@@ -8,30 +8,33 @@ pedidos_bp = Blueprint('pedidos', __name__, url_prefix='/pedidos')
 def novo():
     if request.method == 'POST':
         numero_pedido = request.form.get('numero_pedido_compra')
-        fornecedor = request.form.get('fornecedor')
-        valor_mercadoria = request.form.get('valor_mercadoria', type=float)
-        peso_kg = request.form.get('peso_kg', type=float)
-        empresa_id = request.form.get('empresa_id', type=int)
+        empresa_id = request.form.get('empresa_id')
+        fornecedor_id = request.form.get('fornecedor_id')
+        valor = request.form.get('valor_mercadoria')
+        peso = request.form.get('peso_kg')
 
-        novo_p = Pedido(
+        # Dados manuais de contato da Empresa Compradora
+        empresa_contato_nome = request.form.get('empresa_contato_nome')
+        empresa_contato_email = request.form.get('empresa_contato_email')
+        empresa_contato_telefone = request.form.get('empresa_contato_telefone')
+
+        novo_pedido = Pedido(
             numero_pedido_compra=numero_pedido,
-            fornecedor=fornecedor,
-            valor_mercadoria=valor_mercadoria,
-            peso_kg=peso_kg,
-            empresa_id=empresa_id
+            empresa_id=empresa_id,
+            fornecedor_id=fornecedor_id,
+            valor_mercadoria=float(valor) if valor else 0.0,
+            peso_kg=float(peso) if peso else 0.0,
+            empresa_contato_nome=empresa_contato_nome,
+            empresa_contato_email=empresa_contato_email,
+            empresa_contato_telefone=empresa_contato_telefone,
+            status='Em Cotação'
         )
 
-        db.session.add(novo_p)
+        db.session.add(novo_pedido)
         db.session.commit()
-
-        return redirect(url_for('pedidos.detalhes', id=novo_p.id))
+        return redirect(url_for('main.index'))
 
     empresas = Empresa.query.order_by(Empresa.razao_social).all()
-    return render_template('pedidos/novo.html', empresas=empresas)
-
-
-@pedidos_bp.route('/<int:id>')
-def detalhes(id):
-    pedido = Pedido.query.get_or_404(id)
-    transportadoras = Transportadora.query.order_by(Transportadora.razao_social).all()
-    return render_template('pedidos/detalhes.html', pedido=pedido, transportadoras=transportadoras)
+    fornecedores = Fornecedor.query.order_by(Fornecedor.razao_social).all()
+    
+    return render_template('pedidos/novo.html', empresas=empresas, fornecedores=fornecedores)
