@@ -1,102 +1,16 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="container my-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Pedido Nº: <span class="text-primary">{{ pedido.numero_pedido_compra }}</span></h2>
-        <span class="badge bg-warning text-dark fs-6">{{ pedido.status }}</span>
-    </div>
-
-    <!-- Detalhes do Pedido -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3"><strong>Empresa Compradora:</strong><br>{{ pedido.empresa.razao_social if pedido.empresa else 'N/A' }}</div>
-                <div class="col-md-3"><strong>Fornecedor:</strong><br>{{ pedido.fornecedor }}</div>
-                <div class="col-md-3"><strong>Valor Mercadoria:</strong><br>R$ {{ pedido.valor_mercadoria or '0.00' }}</div>
-                <div class="col-md-3"><strong>Peso:</strong><br>{{ pedido.peso_kg or '0' }} kg</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Form de Inserção de Cotação -->
-        <div class="col-md-5">
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">Adicionar Cotação de Frete</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="/cotacoes/adicionar/{{ pedido.id }}">
-                        <div class="mb-3">
-                            <label class="form-label">Transportadora</label>
-                            <select name="transportadora_id" class="form-select" required>
-                                <option value="">Selecione...</option>
-                                {% for t in transportadoras %}
-                                    <option value="{{ t.id }}">{{ t.razao_social }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Valor do Frete (R$)</label>
-                            <input type="number" step="0.01" name="valor_cotado" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Prazo de Entrega (Dias Úteis)</label>
-                            <input type="number" name="prazo_dias" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Observações</label>
-                            <textarea name="observacoes" class="form-control" rows="2"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100">Registrar Cotação</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Lista de Cotações Recebidas -->
-        <div class="col-md-7">
-            <div class="card shadow-sm">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0">Cotações Recebidas</h5>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Transportadora</th>
-                                <th>Valor</th>
-                                <th>Prazo</th>
-                                <th>Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for c in pedido.cotacoes %}
-                            <tr class="{% if c.vencedor %}table-success{% endif %}">
-                                <td>{{ c.transportadora.razao_social }}</td>
-                                <td>R$ {{ c.valor_cotado }}</td>
-                                <td>{{ c.prazo_dias }} dias</td>
-                                <td>
-                                    {% if not c.vencedor %}
-                                    <form method="POST" action="/cotacoes/{{ c.id }}/selecionar-vencedor" style="display:inline;">
-                                        <button class="btn btn-sm btn-outline-success">Aprovar</button>
-                                    </form>
-                                    {% else %}
-                                    <span class="badge bg-success">Vencedora</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-3">Nenhuma cotação registrada para este pedido.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+{% for c in pedido.cotacoes %}
+<tr class="{% if c.vencedora %}table-success{% endif %}">
+    <td>{{ c.transportadora.razao_social if c.transportadora else 'N/A' }}</td>
+    <td>R$ {{ '%.2f'|format(c.valor_frete|float) }}</td>
+    <td>{{ c.prazo_dias }} dias</td>
+    <td class="text-center">
+        {% if not c.vencedora %}
+        <form method="POST" action="/cotacoes/{{ c.id }}/selecionar-vencedor" class="ajax-form" style="display:inline;">
+            <button class="btn btn-sm btn-outline-success fw-semibold">Aprovar</button>
+        </form>
+        {% else %}
+        <span class="badge bg-success">Vencedora</span>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}

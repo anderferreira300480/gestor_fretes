@@ -1,83 +1,76 @@
+# app/models.py
 from app.database import db
+from datetime import datetime
 
-# MODELO EMPRESA (Unidade Compradora)
 class Empresa(db.Model):
     __tablename__ = 'empresas'
     id = db.Column(db.Integer, primary_key=True)
-    razao_social = db.Column(db.String(100), nullable=False)
-    cnpj = db.Column(db.String(20), unique=True, nullable=False)
-    endereco = db.Column(db.String(150), nullable=True)
-    numero = db.Column(db.String(20), nullable=True)
-    bairro = db.Column(db.String(80), nullable=True)
-    cidade = db.Column(db.String(80), nullable=True)
-    estado = db.Column(db.String(2), nullable=True)
-    nome_contato = db.Column(db.String(100), nullable=True)
-    email = db.Column(db.String(100), nullable=True)
-    telefone = db.Column(db.String(30), nullable=True)
+    razao_social = db.Column(db.String(150), nullable=False)
+    cnpj = db.Column(db.String(20), nullable=False)
+    endereco = db.Column(db.String(200))
+    numero = db.Column(db.String(20))
+    bairro = db.Column(db.String(100))
+    cidade = db.Column(db.String(100))
+    estado = db.Column(db.String(2))
+    nome_contato = db.Column(db.String(100))
+    email = db.Column(db.String(120))
+    telefone = db.Column(db.String(30))
+    
+    pedidos = db.relationship('Pedido', backref='empresa', lazy=True)
 
-# MODELO TRANSPORTADORA
 class Transportadora(db.Model):
     __tablename__ = 'transportadoras'
     id = db.Column(db.Integer, primary_key=True)
-    razao_social = db.Column(db.String(100), nullable=False)
-    cnpj = db.Column(db.String(20), unique=True, nullable=False)
-    endereco = db.Column(db.String(150), nullable=True)
-    numero = db.Column(db.String(20), nullable=True)
-    bairro = db.Column(db.String(80), nullable=True)
-    cidade = db.Column(db.String(80), nullable=True)
-    estado = db.Column(db.String(2), nullable=True)
-    nome_contato = db.Column(db.String(100), nullable=True)
-    email = db.Column(db.String(100), nullable=True)
-    telefone = db.Column(db.String(30), nullable=True)
+    razao_social = db.Column(db.String(150), nullable=False)
+    cnpj = db.Column(db.String(20), nullable=False)
+    endereco = db.Column(db.String(200))
+    numero = db.Column(db.String(20))
+    bairro = db.Column(db.String(100))
+    cidade = db.Column(db.String(100))
+    estado = db.Column(db.String(2))
+    nome_contato = db.Column(db.String(100))
+    email = db.Column(db.String(120))
+    telefone = db.Column(db.String(30))
 
-# MODELO FORNECEDOR
 class Fornecedor(db.Model):
     __tablename__ = 'fornecedores'
     id = db.Column(db.Integer, primary_key=True)
-    razao_social = db.Column(db.String(100), nullable=False)
-    cnpj = db.Column(db.String(20), unique=True, nullable=False)
-    endereco = db.Column(db.String(150), nullable=True)
-    numero = db.Column(db.String(20), nullable=True)
-    bairro = db.Column(db.String(80), nullable=True)
-    cidade = db.Column(db.String(80), nullable=True)
-    estado = db.Column(db.String(2), nullable=True)
-    nome_contato = db.Column(db.String(100), nullable=True)
-    email = db.Column(db.String(100), nullable=True)
-    telefone = db.Column(db.String(30), nullable=True)
+    razao_social = db.Column(db.String(150), nullable=False)
+    cnpj = db.Column(db.String(20), nullable=False)
+    endereco = db.Column(db.String(200))
+    numero = db.Column(db.String(20))
+    bairro = db.Column(db.String(100))
+    cidade = db.Column(db.String(100))
+    estado = db.Column(db.String(2))
+    nome_contato = db.Column(db.String(100))
+    email = db.Column(db.String(120))
+    telefone = db.Column(db.String(30))
 
-# MODELO PEDIDO DE COMPRA
+    pedidos = db.relationship('Pedido', backref='fornecedor', lazy=True)
+
 class Pedido(db.Model):
     __tablename__ = 'pedidos'
     id = db.Column(db.Integer, primary_key=True)
     numero_pedido_compra = db.Column(db.String(50), nullable=False)
+    valor_mercadoria = db.Column(db.Float, default=0.0)
+    status = db.Column(db.String(50), default='em_cotacao')
+    data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
     
-    empresa_id = db.Column(db.Integer, db.ForeignKey('empresas.id'), nullable=False)
-    empresa = db.relationship('Empresa', backref='pedidos')
-
-    fornecedor_id = db.Column(db.Integer, db.ForeignKey('fornecedores.id'), nullable=False)
-    fornecedor = db.relationship('Fornecedor', backref='pedidos')
-
-    valor_mercadoria = db.Column(db.Float, nullable=True)
-    peso_kg = db.Column(db.Float, nullable=True)
-    status = db.Column(db.String(50), default='Em Cotação')
+    empresa_id = db.Column(db.Integer, db.ForeignKey('empresas.id'), nullable=True)
+    fornecedor_id = db.Column(db.Integer, db.ForeignKey('fornecedores.id'), nullable=True)
     
-    # Contato manual do responsável na Empresa Compradora
-    empresa_contato_nome = db.Column(db.String(100), nullable=True)
-    empresa_contato_email = db.Column(db.String(100), nullable=True)
-    empresa_contato_telefone = db.Column(db.String(30), nullable=True)
+    cotacoes = db.relationship('CotacaoFrete', backref='pedido', lazy=True, cascade="all, delete-orphan")
 
-# MODELO COTAÇÃO DE FRETE
 class CotacaoFrete(db.Model):
-    __tablename__ = 'cotacoes_frete'
+    __tablename__ = 'cotacoes'
     id = db.Column(db.Integer, primary_key=True)
+    valor_frete = db.Column(db.Float, nullable=False)
+    prazo_dias = db.Column(db.Integer, nullable=True)
+    aprovada = db.Column(db.Boolean, default=False)
     
     pedido_id = db.Column(db.Integer, db.ForeignKey('pedidos.id'), nullable=False)
-    pedido = db.relationship('Pedido', backref='cotacoes')
+    transportadora_id = db.Column(db.Integer, db.ForeignKey('transportadoras.id'), nullable=True)
+    transportadora = db.relationship('Transportadora', backref='cotacoes', lazy=True)
 
-    transportadora_id = db.Column(db.Integer, db.ForeignKey('transportadoras.id'), nullable=False)
-    transportadora = db.relationship('Transportadora', backref='cotacoes')
-
-    valor_frete = db.Column(db.Float, nullable=False)
-    prazo_dias = db.Column(db.Integer, nullable=False)
-    vencedora = db.Column(db.Boolean, default=False)
-    data_cotacao = db.Column(db.DateTime, default=db.func.current_timestamp())
+# Alias de compatibilidade (para evitar erros se algum arquivo ainda utilizar 'Cotacao')
+Cotacao = CotacaoFrete

@@ -1,0 +1,204 @@
+<!-- app/templates/dashboard/kanban.html -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0 text-dark">Dashboard</h3>
+    </div>
+    
+    <!-- Filtro de Empresa + Novo Pedido -->
+    <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center bg-white p-1 px-3 rounded shadow-sm border">
+            <i class="fa-solid fa-filter text-muted me-2"></i>
+            <span class="small text-muted me-2 fw-semibold">Empresa:</span>
+            <select class="form-select form-select-sm border-0 bg-transparent fw-bold text-dark" style="min-width: 180px; cursor: pointer;" onchange="filtrarPorEmpresa(this.value)">
+                <option value="" {% if not empresa_selecionada %}selected{% endif %}>Todas (Visão Geral)</option>
+                {% for emp in empresas_list %}
+                    <option value="{{ emp.id }}" {% if empresa_selecionada == emp.id %}selected{% endif %}>
+                        {{ emp.razao_social }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button class="btn btn-primary fw-semibold px-3 shadow-sm" onclick="carregarTela('/pedidos/novo')">
+            <i class="fa-solid fa-plus me-1"></i> NOVO PEDIDO
+        </button>
+    </div>
+</div>
+
+<!-- CARDS DE RECAPITULAÇÃO (KPIs) -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-3 bg-white">
+            <div class="d-flex align-items-center">
+                <div class="rounded p-3 bg-success-subtle text-success me-3">
+                    <i class="fa-solid fa-sack-dollar fs-3"></i>
+                </div>
+                <div>
+                    <span class="text-muted small d-block fw-semibold">Economia Total:</span>
+                    <h4 class="fw-bold mb-0 text-dark">R$ {{ total_economia or '0,00' }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-3 bg-white">
+            <div class="d-flex align-items-center">
+                <div class="rounded p-3 bg-info-subtle text-info me-3">
+                    <i class="fa-solid fa-calculator fs-3"></i>
+                </div>
+                <div>
+                    <span class="text-muted small d-block fw-semibold">Valor Médio Frete:</span>
+                    <h4 class="fw-bold mb-0 text-dark">R$ {{ valor_medio or '0,00' }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QUADRO KANBAN (5 COLUNAS) -->
+<div class="row row-cols-1 row-cols-md-5 g-3">
+    
+    <!-- 1. EM COTAÇÃO -->
+    <div class="col">
+        <div class="card border-0 bg-warning-subtle h-100 shadow-sm">
+            <div class="card-header bg-warning text-dark text-center fw-bold border-0 py-2">
+                📋 Em Cotação
+            </div>
+            <div class="card-body p-2" style="min-height: 500px;">
+                {% for p in kanban.em_cotacao %}
+                <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
+                    <small class="fw-bold text-dark d-block">
+                        <a href="javascript:void(0)" onclick="carregarTela('/pedidos/{{ p.id }}/detalhes')" class="text-decoration-none text-dark">
+                            CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
+                        </a>
+                    </small>
+                    <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                    <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
+                    <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top" style="font-size: 0.75rem;">
+                        <span class="text-muted"><i class="fa-solid fa-paperclip"></i> Anexo NF</span>
+                        <span class="text-muted"><i class="fa-regular fa-clock"></i> Prazos</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. AGUARDANDO COLETA -->
+    <div class="col">
+        <div class="card border-0 shadow-sm h-100" style="background-color: #ffe0b2 !important;">
+            <div class="card-header text-white text-center fw-bold border-0 py-2" style="background-color: #ff9800 !important;">
+                📦 Aguardando Coleta
+            </div>
+            <div class="card-body p-2" style="min-height: 500px;">
+                {% for p in kanban.aguardando_coleta %}
+                <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
+                    <small class="fw-bold text-dark d-block">
+                        <a href="javascript:void(0)" onclick="carregarTela('/pedidos/{{ p.id }}/detalhes')" class="text-decoration-none text-dark">
+                            CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
+                        </a>
+                    </small>
+                    <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                    <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
+                    <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top" style="font-size: 0.75rem;">
+                        <span class="text-muted"><i class="fa-solid fa-paperclip"></i> Anexo NF</span>
+                        <span class="text-muted"><i class="fa-regular fa-clock"></i> Prazos</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. EM TRÂNSITO -->
+    <div class="col">
+        <div class="card border-0 bg-info-subtle h-100 shadow-sm">
+            <div class="card-header bg-primary text-white text-center fw-bold border-0 py-2">
+                🚚 Em Trânsito
+            </div>
+            <div class="card-body p-2" style="min-height: 500px;">
+                {% for p in kanban.em_transito %}
+                <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
+                    <small class="fw-bold text-dark d-block">
+                        <a href="javascript:void(0)" onclick="carregarTela('/pedidos/{{ p.id }}/detalhes')" class="text-decoration-none text-dark">
+                            CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
+                        </a>
+                    </small>
+                    <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                    <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
+                    <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top" style="font-size: 0.75rem;">
+                        <span class="text-muted"><i class="fa-solid fa-paperclip"></i> Anexo NF</span>
+                        <span class="text-muted"><i class="fa-regular fa-clock"></i> Prazos</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ENTREGUE -->
+    <div class="col">
+        <div class="card border-0 bg-success-subtle h-100 shadow-sm">
+            <div class="card-header bg-success text-white text-center fw-bold border-0 py-2">
+                ✅ Entregue
+            </div>
+            <div class="card-body p-2" style="min-height: 500px;">
+                {% for p in kanban.entregue %}
+                <div class="card shadow-sm mb-2 p-2 border-0 bg-white position-relative">
+                    <i class="fa-solid fa-circle-check text-success position-absolute top-0 end-0 m-2"></i>
+                    <small class="fw-bold text-dark d-block me-3">
+                        <a href="javascript:void(0)" onclick="carregarTela('/pedidos/{{ p.id }}/detalhes')" class="text-decoration-none text-dark">
+                            CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
+                        </a>
+                    </small>
+                    <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                    <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
+                    <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top" style="font-size: 0.75rem;">
+                        <span class="text-muted"><i class="fa-solid fa-paperclip"></i> Anexo NF</span>
+                        <span class="text-muted"><i class="fa-regular fa-clock"></i> Prazos</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. OCORRÊNCIA / SINISTRO -->
+    <div class="col">
+        <div class="card border-0 bg-danger-subtle h-100 shadow-sm">
+            <div class="card-header bg-danger text-white text-center fw-bold border-0 py-2">
+                ⚠️ Ocorrência/Sinistro
+            </div>
+            <div class="card-body p-2" style="min-height: 500px;">
+                {% for p in kanban.ocorrencia %}
+                <div class="card shadow-sm mb-2 p-2 border-0 bg-white position-relative">
+                    <i class="fa-solid fa-circle-xmark text-danger position-absolute top-0 end-0 m-2"></i>
+                    <small class="fw-bold text-dark d-block me-3">
+                        <a href="javascript:void(0)" onclick="carregarTela('/pedidos/{{ p.id }}/detalhes')" class="text-decoration-none text-dark">
+                            CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
+                        </a>
+                    </small>
+                    <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                    <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
+                    <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top" style="font-size: 0.75rem;">
+                        <span class="text-muted"><i class="fa-solid fa-paperclip"></i> Anexo NF</span>
+                        <span class="text-muted"><i class="fa-regular fa-clock"></i> Prazos</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>

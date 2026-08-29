@@ -3,45 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GRUPO FRETELOG</title>
+    <title>GRUPO FRETELOG - Gestor de Fretes</title>
+
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Estilos Internos Fidedignos ao Layout Original GRUPO FRETELOG -->
     <style>
-        body { font-size: 0.85rem; background-color: #f4f6f9; }
-        .sidebar { width: 90px; background-color: #0f172a; min-height: 100vh; }
-        .sidebar a { color: #94a3b8; text-decoration: none; font-size: 0.7rem; text-align: center; }
-        .sidebar a:hover, .sidebar a.active { color: #fff; background-color: #1e293b; }
+        :root {
+            --sidebar-bg: #0b1329;
+            --sidebar-hover: #172a46;
+            --header-bg: #0b1329;
+            --main-bg: #f4f6f9;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: var(--main-bg);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Navbar Topo */
+        .navbar-fretelog {
+            background-color: var(--header-bg);
+            height: 56px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .navbar-fretelog .navbar-brand {
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Sidebar Escuro Compacto */
+        .sidebar-fretelog {
+            width: 100px;
+            min-height: calc(100vh - 56px);
+            background-color: var(--sidebar-bg);
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .sidebar-fretelog .nav-link {
+            color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 8px;
+            font-size: 0.75rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .sidebar-fretelog .nav-link i {
+            font-size: 1.25rem;
+            margin-bottom: 6px;
+            color: #94a3b8;
+        }
+
+        .sidebar-fretelog .nav-link:hover,
+        .sidebar-fretelog .nav-link.active {
+            color: #ffffff;
+            background-color: var(--sidebar-hover);
+        }
+
+        .sidebar-fretelog .nav-link:hover i,
+        .sidebar-fretelog .nav-link.active i {
+            color: #3b82f6;
+        }
+
+        /* Dropdown para Cadastros na Sidebar se necessário ou clique direto */
+        .sidebar-fretelog .dropdown-menu {
+            background-color: var(--sidebar-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-fretelog .dropdown-item {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            padding: 8px 16px;
+        }
+
+        .sidebar-fretelog .dropdown-item:hover {
+            background-color: var(--sidebar-hover);
+            color: #fff;
+        }
+
+        /* Área de Conteúdo Principal */
+        .main-wrapper {
+            flex-grow: 1;
+            background-color: var(--main-bg);
+            min-height: calc(100vh - 56px);
+            padding: 24px;
+        }
     </style>
 </head>
-<body class="d-flex">
+<body>
 
-    <!-- Menu Lateral Dark -->
-    <div class="sidebar d-flex flex-column align-items-center py-3">
-        <a href="/" class="py-3 w-100 active">
-            <div>📊</div> Dashboard
-        </a>
-        <a href="/pedidos/novo" class="py-3 w-100">
-            <div>📄</div> Novo Pedido
-        </a>
-        <a href="#" class="py-3 w-100">
-            <div>📁</div> Cadastros
-        </a>
-        <a href="#" class="py-3 w-100">
-            <div>📈</div> Relatórios
-        </a>
-    </div>
-
-    <!-- Conteúdo Principal -->
-    <div class="flex-grow-1">
-        <!-- Topbar -->
-        <nav class="navbar navbar-dark bg-dark px-4 py-2">
-            <span class="navbar-brand fw-bold mb-0 h1">GRUPO FRETELOG</span>
-            <input class="form-control w-25 bg-secondary text-white border-0" type="search" placeholder="Buscar">
-        </nav>
-
-        <div class="p-4">
-            {% block content %}{% endblock %}
+    <!-- Topbar Header -->
+    <nav class="navbar navbar-dark navbar-fretelog px-3">
+        <div class="container-fluid p-0">
+            <a class="navbar-brand fw-bold text-white d-flex align-items-center" href="#" onclick="carregarTela('/kanban'); return false;">
+                <i class="fa-solid fa-bars me-3 text-white-50 fs-5" style="cursor: pointer;"></i>
+                GRUPO FRETELOG
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="navbar-text text-white small me-3">
+                    <i class="fa-solid fa-user me-1"></i> Anderson Ferreira
+                </span>
+            </div>
         </div>
+    </nav>
+
+    <div class="d-flex">
+        <!-- Sidebar Menu Esquerdo (Compacto com Ícones) -->
+        <div class="sidebar-fretelog">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" onclick="carregarTela('/kanban'); return false;">
+                        <i class="fa-solid fa-border-all"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="alert('Novo Pedido'); return false;">
+                        <i class="fa-solid fa-box-archive"></i>
+                        <span>Novo Pedido</span>
+                    </a>
+                </li>
+                <!-- Menu Cadastros (Dropdown / Seleção) -->
+                <li class="nav-item dropend">
+                    <a class="nav-link dropdown-toggle" href="#" id="dropdownCadastros" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <span>Cadastros</span>
+                    </a>
+                    <ul class="dropdown-menu shadow" aria-labelledby="dropdownCadastros">
+                        <li><a class="dropdown-item" href="#" onclick="carregarTela('/cadastros/empresas'); return false;"><i class="fa-solid fa-building me-2"></i>Empresas</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="carregarTela('/cadastros/transportadoras'); return false;"><i class="fa-solid fa-truck me-2"></i>Transportadoras</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="carregarTela('/cadastros/fornecedores'); return false;"><i class="fa-solid fa-boxes-packing me-2"></i>Fornecedores</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="return false;">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>Relatórios</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <main id="main-content" class="main-wrapper">
+            {% if tela_ativa == 'empresas' %}
+                {% include 'cadastros/empresas.html' %}
+            {% elif tela_ativa == 'transportadoras' %}
+                {% include 'cadastros/transportadoras.html' %}
+            {% elif tela_ativa == 'fornecedores' %}
+                {% include 'cadastros/fornecedores.html' %}
+            {% else %}
+                {% include 'dashboard/kanban.html' %}
+            {% endif %}
+        </main>
     </div>
 
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Scripts da Aplicação (AJAX + Máscaras + Verificação de CNPJ em tempo real) -->
+    <script>
+        function carregarTela(url) {
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('main-content').innerHTML = html;
+                inicializarRecursos();
+            })
+            .catch(err => console.error('Erro ao carregar rota:', err));
+        }
+
+        function interceptarFormularios() {
+            document.querySelectorAll('.ajax-form').forEach(form => {
+                form.onsubmit = function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    const url = this.getAttribute('action');
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: formData
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('main-content').innerHTML = html;
+                        inicializarRecursos();
+                    })
+                    .catch(err => console.error('Erro ao salvar formulário:', err));
+                };
+            });
+        }
+
+        function aplicarMascarasInputs() {
+            document.querySelectorAll('input[name="cnpj"]').forEach(input => {
+                input.oninput = function(e) {
+                    let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,3})(\d{0,3})(\d{0,4})(\d{0,2})/);
+                    if (!x[2]) {
+                        e.target.value = x[1];
+                    } else {
+                        e.target.value = !x[3] ? `${x[1]}.${x[2]}` : 
+                                         !x[4] ? `${x[1]}.${x[2]}.${x[3]}` : 
+                                         !x[5] ? `${x[1]}.${x[2]}.${x[3]}/${x[4]}` : 
+                                         `${x[1]}.${x[2]}.${x[3]}/${x[4]}-${x[5]}`;
+                    }
+                };
+                input.setAttribute('maxlength', '18');
+            });
+
+            document.querySelectorAll('input[name="telefone"]').forEach(input => {
+                input.oninput = function(e) {
+                    let v = e.target.value.replace(/\D/g, '').substring(0, 11);
+                    if (v.length > 10) {
+                        v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+                    } else if (v.length > 5) {
+                        v = v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
+                    } else if (v.length > 2) {
+                        v = v.replace(/^(\d{2})(\d{0,5})$/, '($1) $2');
+                    } else if (v.length > 0) {
+                        v = v.replace(/^(\d*)$/, '($1');
+                    }
+                    e.target.value = v;
+                };
+                input.setAttribute('maxlength', '15');
+            });
+        }
+
+        function ativarVerificacaoCNPJ() {
+            document.querySelectorAll('input[name="cnpj"]').forEach(input => {
+                input.addEventListener('blur', function() {
+                    const cnpjLimpo = this.value.replace(/\D/g, '');
+                    const tipoCadastro = this.getAttribute('data-tipo');
+                    const form = this.closest('form');
+                    const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+                    const feedbackDiv = this.parentElement.querySelector('.invalid-feedback') || document.getElementById('cnpj-feedback');
+
+                    if (cnpjLimpo.length === 14 && tipoCadastro) {
+                        fetch(`/cadastros/verificar-cnpj?cnpj=${cnpjLimpo}&tipo=${tipoCadastro}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.existe) {
+                                    this.classList.add('is-invalid');
+                                    if (feedbackDiv) feedbackDiv.style.display = 'block';
+                                    if (submitBtn) submitBtn.disabled = true;
+                                } else {
+                                    this.classList.remove('is-invalid');
+                                    if (feedbackDiv) feedbackDiv.style.display = 'none';
+                                    if (submitBtn) submitBtn.disabled = false;
+                                }
+                            })
+                            .catch(err => console.error('Erro na consulta do CNPJ:', err));
+                    } else {
+                        this.classList.remove('is-invalid');
+                        if (feedbackDiv) feedbackDiv.style.display = 'none';
+                        if (submitBtn) submitBtn.disabled = false;
+                    }
+                });
+            });
+        }
+
+        function inicializarRecursos() {
+            aplicarMascarasInputs();
+            interceptarFormularios();
+            ativarVerificacaoCNPJ();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            inicializarRecursos();
+        });
+    </script>
 </body>
 </html>
