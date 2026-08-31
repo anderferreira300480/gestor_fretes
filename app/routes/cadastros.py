@@ -1,4 +1,3 @@
-# app/routes/cadastros.py
 import re
 from flask import Blueprint, render_template, request, jsonify
 from app.database import db
@@ -45,6 +44,7 @@ def empresas():
             nova_empresa = Empresa(
                 razao_social=request.form.get('razao_social'),
                 cnpj=cnpj_limpo,
+                cep=apenas_numeros(request.form.get('cep')),
                 endereco=request.form.get('endereco'),
                 numero=request.form.get('numero'),
                 bairro=request.form.get('bairro'),
@@ -79,6 +79,7 @@ def transportadoras():
             nova_transp = Transportadora(
                 razao_social=request.form.get('razao_social'),
                 cnpj=cnpj_limpo,
+                cep=apenas_numeros(request.form.get('cep')),
                 endereco=request.form.get('endereco'),
                 numero=request.form.get('numero'),
                 bairro=request.form.get('bairro'),
@@ -113,6 +114,7 @@ def fornecedores():
             novo_forn = Fornecedor(
                 razao_social=request.form.get('razao_social'),
                 cnpj=cnpj_limpo,
+                cep=apenas_numeros(request.form.get('cep')),
                 endereco=request.form.get('endereco'),
                 numero=request.form.get('numero'),
                 bairro=request.form.get('bairro'),

@@ -1,4 +1,3 @@
-# app/models.py
 from app.database import db
 from datetime import datetime
 
@@ -7,6 +6,7 @@ class Empresa(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     razao_social = db.Column(db.String(150), nullable=False)
     cnpj = db.Column(db.String(20), nullable=False)
+    cep = db.Column(db.String(10))  # Campo de CEP adicionado
     endereco = db.Column(db.String(200))
     numero = db.Column(db.String(20))
     bairro = db.Column(db.String(100))
@@ -23,6 +23,7 @@ class Transportadora(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     razao_social = db.Column(db.String(150), nullable=False)
     cnpj = db.Column(db.String(20), nullable=False)
+    cep = db.Column(db.String(10))  # Campo de CEP adicionado
     endereco = db.Column(db.String(200))
     numero = db.Column(db.String(20))
     bairro = db.Column(db.String(100))
@@ -37,6 +38,7 @@ class Fornecedor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     razao_social = db.Column(db.String(150), nullable=False)
     cnpj = db.Column(db.String(20), nullable=False)
+    cep = db.Column(db.String(10))  # Campo de CEP adicionado
     endereco = db.Column(db.String(200))
     numero = db.Column(db.String(20))
     bairro = db.Column(db.String(100))
@@ -72,5 +74,5 @@ class CotacaoFrete(db.Model):
     transportadora_id = db.Column(db.Integer, db.ForeignKey('transportadoras.id'), nullable=True)
     transportadora = db.relationship('Transportadora', backref='cotacoes', lazy=True)
 
-# Alias de compatibilidade (para evitar erros se algum arquivo ainda utilizar 'Cotacao')
+# Alias de compatibilidade
 Cotacao = CotacaoFrete

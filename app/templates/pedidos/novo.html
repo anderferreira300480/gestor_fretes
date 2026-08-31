@@ -66,11 +66,15 @@
                         </select>
                     </div>
 
+                    <div class="col-md-3">
+                        <label for="emp_cep" class="form-label">CEP</label>
+                        <input type="text" class="form-control" id="emp_cep" name="emp_cep">
+                    </div>
                     <div class="col-md-6">
                         <label for="emp_endereco" class="form-label">Endereço</label>
                         <input type="text" class="form-control" id="emp_endereco" name="emp_endereco">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label for="emp_numero" class="form-label">Número</label>
                         <input type="text" class="form-control" id="emp_numero" name="emp_numero">
                     </div>
@@ -78,11 +82,11 @@
                         <label for="emp_bairro" class="form-label">Bairro</label>
                         <input type="text" class="form-control" id="emp_bairro" name="emp_bairro">
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-md-5">
                         <label for="emp_cidade" class="form-label">Cidade</label>
                         <input type="text" class="form-control" id="emp_cidade" name="emp_cidade">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label for="emp_estado" class="form-label">UF</label>
                         <input type="text" class="form-control" id="emp_estado" name="emp_estado" maxlength="2">
                     </div>
@@ -119,11 +123,15 @@
                         </select>
                     </div>
 
+                    <div class="col-md-3">
+                        <label for="forn_cep" class="form-label">CEP</label>
+                        <input type="text" class="form-control" id="forn_cep" name="forn_cep">
+                    </div>
                     <div class="col-md-6">
                         <label for="forn_endereco" class="form-label">Endereço de Origem</label>
                         <input type="text" class="form-control" id="forn_endereco" name="forn_endereco">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label for="forn_numero" class="form-label">Número</label>
                         <input type="text" class="form-control" id="forn_numero" name="forn_numero">
                     </div>
@@ -131,11 +139,11 @@
                         <label for="forn_bairro" class="form-label">Bairro</label>
                         <input type="text" class="form-control" id="forn_bairro" name="forn_bairro">
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-md-5">
                         <label for="forn_cidade" class="form-label">Cidade</label>
                         <input type="text" class="form-control" id="forn_cidade" name="forn_cidade">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label for="forn_estado" class="form-label">UF</label>
                         <input type="text" class="form-control" id="forn_estado" name="forn_estado" maxlength="2">
                     </div>
@@ -190,7 +198,8 @@
             selectEmpresa.addEventListener('change', function() {
                 const empresaId = this.value;
                 
-                // Limpa os campos de endereço
+                // Limpa estritamente os campos de endereço da empresa
+                document.getElementById('emp_cep').value = '';
                 document.getElementById('emp_endereco').value = '';
                 document.getElementById('emp_numero').value = '';
                 document.getElementById('emp_bairro').value = '';
@@ -203,15 +212,13 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.erro) return;
-                        // Preenche APENAS os dados de endereço da Empresa
+                        // Preenche os dados direcionando estritamente para o prefixo emp_
+                        document.getElementById('emp_cep').value = data.cep || '';
                         document.getElementById('emp_endereco').value = data.endereco || '';
                         document.getElementById('emp_numero').value = data.numero || '';
                         document.getElementById('emp_bairro').value = data.bairro || '';
                         document.getElementById('emp_cidade').value = data.cidade || '';
                         document.getElementById('emp_estado').value = data.estado || '';
-                        
-                        // Nota: Nome de Contato, E-mail e Telefone da empresa NÃO são preenchidos
-                        // para permitirem digitação manual.
                     })
                     .catch(err => console.error('Erro ao buscar empresa:', err));
             });
@@ -223,6 +230,8 @@
             selectFornecedor.addEventListener('change', function() {
                 const fornecedorId = this.value;
                 
+                // Limpa estritamente os campos do fornecedor
+                document.getElementById('forn_cep').value = '';
                 document.getElementById('forn_endereco').value = '';
                 document.getElementById('forn_numero').value = '';
                 document.getElementById('forn_bairro').value = '';
@@ -238,6 +247,8 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.erro) return;
+                        // Preenche os dados direcionando estritamente para o prefixo forn_
+                        document.getElementById('forn_cep').value = data.cep || '';
                         document.getElementById('forn_endereco').value = data.endereco || '';
                         document.getElementById('forn_numero').value = data.numero || '';
                         document.getElementById('forn_bairro').value = data.bairro || '';

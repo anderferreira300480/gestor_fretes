@@ -12,6 +12,7 @@ def obter_empresa(empresa_id):
         return jsonify({'erro': 'Empresa não encontrada'}), 404
 
     return jsonify({
+        'cep': empresa.cep or '',
         'endereco': empresa.endereco or '',
         'numero': empresa.numero or '',
         'bairro': empresa.bairro or '',
@@ -27,9 +28,10 @@ def obter_empresa(empresa_id):
 def obter_fornecedor(fornecedor_id):
     fornecedor = Fornecedor.query.get(fornecedor_id)
     if not fornecedor:
-        return jsonify({'erro': 'Fornecedor não encontrado'}), 404
+        return jsonify({'erro': 'Fornecedor não encontrada'}), 404
 
     return jsonify({
+        'cep': fornecedor.cep or '',
         'endereco': fornecedor.endereco or '',
         'numero': fornecedor.numero or '',
         'bairro': fornecedor.bairro or '',
