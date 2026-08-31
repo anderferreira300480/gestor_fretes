@@ -1,212 +1,267 @@
-<div class="card shadow-sm col-md-10 mx-auto mb-5">
-    <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">Cadastrar Novo Pedido de Compra</h4>
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <h4 class="card-title mb-0 text-primary fw-bold">
+            <i class="fa-solid fa-file-circle-plus me-2"></i>Novo Pedido de Compra
+        </h4>
     </div>
-    <div class="card-body">
-        <form method="POST" action="/pedidos/novo">
-            <!-- DADOS DO PEDIDO -->
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Número do Pedido de Compra</label>
-                    <input type="text" name="numero_pedido_compra" class="form-control" placeholder="Ex: PC-1002" required>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label class="form-label fw-bold">Valor Mercadoria (R$)</label>
-                    <input type="number" step="0.01" name="valor_mercadoria" class="form-control" placeholder="0.00">
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label class="form-label fw-bold">Peso Total (kg)</label>
-                    <input type="number" step="0.01" name="peso_kg" class="form-control" placeholder="0.00">
-                </div>
-            </div>
+    <div class="card-body p-4">
+        <form id="form-pedido-compra" class="ajax-form" action="/pedidos/salvar" method="POST">
 
-            <hr class="my-4">
+            <!-- 1. DETALHES DO PEDIDO & CARGA -->
+            <div class="mb-4">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                    <i class="fa-solid fa-truck-ramp-box me-2 text-primary"></i>1. Detalhes do Pedido & Carga
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="numero_pedido" class="form-label fw-semibold">Número do Pedido/NF</label>
+                        <input type="text" class="form-control" id="numero_pedido" name="numero_pedido" placeholder="Ex: PED-2026-001">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="volumes" class="form-label fw-semibold">Volumes</label>
+                        <input type="number" class="form-control" id="volumes" name="volumes" placeholder="Ex: 5">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="peso_kg" class="form-label fw-semibold">Peso Total (kg)</label>
+                        <input type="number" step="0.01" class="form-control" id="peso_kg" name="peso_kg" placeholder="0.00">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="valor_carga" class="form-label fw-semibold">Valor da Carga (R$)</label>
+                        <input type="number" step="0.01" class="form-control" id="valor_carga" name="valor_carga" placeholder="0.00">
+                    </div>
 
-            <!-- TÓPICO 1: EMPRESA COMPRADORA (DESTINO) -->
-            <h5 class="text-primary mb-3">1. Empresa Compradora (Destino)</h5>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Selecionar Empresa</label>
-                <select id="empresa_select" name="empresa_id" class="form-select" required>
-                    <option value="">Selecione a empresa...</option>
-                    {% for e in empresas %}
-                        <option value="{{ e.id }}" 
-                                data-endereco="{{ e.endereco or '' }}" 
-                                data-numero="{{ e.numero or '' }}" 
-                                data-bairro="{{ e.bairro or '' }}"
-                                data-cidade="{{ e.cidade or '' }}" 
-                                data-estado="{{ e.estado or '' }}">
-                            {{ e.razao_social }} ({{ e.cnpj }})
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <!-- Endereço da Empresa (Autopreenchido) -->
-            <div class="row bg-light p-3 rounded mb-3 border">
-                <div class="col-md-4 mb-2">
-                    <label class="form-label text-muted small">Endereço</label>
-                    <input type="text" id="empresa_endereco" class="form-control form-control-sm bg-white" readonly>
-                </div>
-                <div class="col-md-2 mb-2">
-                    <label class="form-label text-muted small">Número</label>
-                    <input type="text" id="empresa_numero" class="form-control form-control-sm bg-white" readonly>
-                </div>
-                <div class="col-md-2 mb-2">
-                    <label class="form-label text-muted small">Bairro</label>
-                    <input type="text" id="empresa_bairro" class="form-control form-control-sm bg-white" readonly>
-                </div>
-                <div class="col-md-3 mb-2">
-                    <label class="form-label text-muted small">Cidade</label>
-                    <input type="text" id="empresa_cidade" class="form-control form-control-sm bg-white" readonly>
-                </div>
-                <div class="col-md-1 mb-2">
-                    <label class="form-label text-muted small">UF</label>
-                    <input type="text" id="empresa_estado" class="form-control form-control-sm bg-white" readonly>
-                </div>
-            </div>
+                    <div class="col-md-4">
+                        <label for="dim_altura" class="form-label fw-semibold">Altura (m)</label>
+                        <input type="number" step="0.01" class="form-control" id="dim_altura" name="dim_altura" placeholder="Ex: 1.20">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="dim_largura" class="form-label fw-semibold">Largura (m)</label>
+                        <input type="number" step="0.01" class="form-control" id="dim_largura" name="dim_largura" placeholder="Ex: 1.00">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="dim_comprimento" class="form-label fw-semibold">Comprimento (m)</label>
+                        <input type="number" step="0.01" class="form-control" id="dim_comprimento" name="dim_comprimento" placeholder="Ex: 2.50">
+                    </div>
 
-            <!-- Contato da Empresa (Preenchimento Manual) -->
-            <div class="row mb-4">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Nome de Contato</label>
-                    <input type="text" name="empresa_contato_nome" class="form-control" placeholder="Responsável pelo recebimento">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">E-mail</label>
-                    <input type="email" name="empresa_contato_email" class="form-control" placeholder="email@empresa.com">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Telefone / WhatsApp</label>
-                    <!-- Campo com a máscara dinâmica aplicada -->
-                    <input type="text" 
-                           name="empresa_contato_telefone" 
-                           class="form-control" 
-                           placeholder="(00) 00000-0000" 
-                           maxlength="15" 
-                           oninput="mascaraTelefone(this)">
-                </div>
-            </div>
-
-            <hr class="my-4">
-
-            <!-- TÓPICO 2: FORNECEDOR (ORIGEM/COLETA) -->
-            <h5 class="text-primary mb-3">2. Fornecedor (Origem/Coleta)</h5>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Selecionar Fornecedor</label>
-                <select id="fornecedor_select" name="fornecedor_id" class="form-select" required>
-                    <option value="">Selecione o fornecedor...</option>
-                    {% for f in fornecedores %}
-                        <option value="{{ f.id }}" 
-                                data-endereco="{{ f.endereco or '' }}" 
-                                data-numero="{{ f.numero or '' }}" 
-                                data-bairro="{{ f.bairro or '' }}"
-                                data-cidade="{{ f.cidade or '' }}" 
-                                data-estado="{{ f.estado or '' }}"
-                                data-contato="{{ f.nome_contato or '' }}"
-                                data-email="{{ f.email or '' }}"
-                                data-telefone="{{ f.telefone or '' }}">
-                            {{ f.razao_social }} ({{ f.cnpj }})
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Dados Completos do Fornecedor (Autopreenchido do Cadastro) -->
-            <div class="bg-light p-3 rounded mb-4 border">
-                <div class="row mb-3">
-                    <div class="col-md-4 mb-2">
-                        <label class="form-label text-muted small">Endereço de Origem</label>
-                        <input type="text" id="fornecedor_endereco" class="form-control form-control-sm bg-white" readonly>
-                    </div>
-                    <div class="col-md-2 mb-2">
-                        <label class="form-label text-muted small">Número</label>
-                        <input type="text" id="fornecedor_numero" class="form-control form-control-sm bg-white" readonly>
-                    </div>
-                    <div class="col-md-2 mb-2">
-                        <label class="form-label text-muted small">Bairro</label>
-                        <input type="text" id="fornecedor_bairro" class="form-control form-control-sm bg-white" readonly>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Cidade</label>
-                        <input type="text" id="fornecedor_cidade" class="form-control form-control-sm bg-white" readonly>
-                    </div>
-                    <div class="col-md-1 mb-2">
-                        <label class="form-label text-muted small">UF</label>
-                        <input type="text" id="fornecedor_estado" class="form-control form-control-sm bg-white" readonly>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4 mb-2">
-                        <label class="form-label text-muted small">Nome de Contato</label>
-                        <input type="text" id="fornecedor_contato" class="form-control form-control-sm bg-white" readonly>
-                    </div>
-                    <div class="col-md-4 mb-2">
-                        <label class="form-label text-muted small">E-mail</label>
-                        <input type="text" id="fornecedor_email" class="form-control form-control-sm bg-white" readonly>
-                    </div>
-                    <div class="col-md-4 mb-2">
-                        <label class="form-label text-muted small">Telefone</label>
-                        <input type="text" id="fornecedor_telefone" class="form-control form-control-sm bg-white" readonly>
+                    <div class="col-md-12">
+                        <label for="observacoes" class="form-label fw-semibold">Observações / Instruções de Transporte</label>
+                        <textarea class="form-control" id="observacoes" name="observacoes" rows="3" placeholder="Insira detalhes adicionais sobre a coleta ou entrega..."></textarea>
                     </div>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-success btn-lg w-100 mt-3">Criar Pedido de Compra</button>
+            <!-- 2. EMPRESA / COMPRADORA -->
+            <div class="mb-4">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                    <i class="fa-solid fa-building me-2 text-primary"></i>2. Empresa / Compradora
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label for="empresa_id" class="form-label fw-semibold">Selecionar Empresa Compradora</label>
+                        <select class="form-select" id="empresa_id" name="empresa_id" required>
+                            <option value="">-- Selecione uma Empresa --</option>
+                            {% for emp in empresas %}
+                                <option value="{{ emp.id }}">{{ emp.razao_social }} (CNPJ: {{ emp.cnpj }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="emp_endereco" class="form-label">Endereço</label>
+                        <input type="text" class="form-control" id="emp_endereco" name="emp_endereco">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="emp_numero" class="form-label">Número</label>
+                        <input type="text" class="form-control" id="emp_numero" name="emp_numero">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="emp_bairro" class="form-label">Bairro</label>
+                        <input type="text" class="form-control" id="emp_bairro" name="emp_bairro">
+                    </div>
+                    <div class="col-md-8">
+                        <label for="emp_cidade" class="form-label">Cidade</label>
+                        <input type="text" class="form-control" id="emp_cidade" name="emp_cidade">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="emp_estado" class="form-label">UF</label>
+                        <input type="text" class="form-control" id="emp_estado" name="emp_estado" maxlength="2">
+                    </div>
+
+                    <!-- Campos de Contato (Preenchimento manual pelo usuário) -->
+                    <div class="col-md-4">
+                        <label for="emp_nome_contato" class="form-label fw-semibold">Nome de Contato</label>
+                        <input type="text" class="form-control" id="emp_nome_contato" name="emp_nome_contato">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="emp_email" class="form-label fw-semibold">E-mail</label>
+                        <input type="email" class="form-control" id="emp_email" name="emp_email">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="emp_telefone" class="form-label fw-semibold">Telefone</label>
+                        <input type="text" class="form-control mascara-telefone" id="emp_telefone" name="emp_telefone">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. FORNECEDOR -->
+            <div class="mb-4">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                    <i class="fa-solid fa-boxes-packing me-2 text-primary"></i>3. Fornecedor
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label for="fornecedor_id" class="form-label fw-semibold">Selecionar Fornecedor</label>
+                        <select class="form-select" id="fornecedor_id" name="fornecedor_id" required>
+                            <option value="">-- Selecione um Fornecedor --</option>
+                            {% for forn in fornecedores %}
+                                <option value="{{ forn.id }}">{{ forn.razao_social }} (CNPJ: {{ forn.cnpj }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="forn_endereco" class="form-label">Endereço de Origem</label>
+                        <input type="text" class="form-control" id="forn_endereco" name="forn_endereco">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="forn_numero" class="form-label">Número</label>
+                        <input type="text" class="form-control" id="forn_numero" name="forn_numero">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="forn_bairro" class="form-label">Bairro</label>
+                        <input type="text" class="form-control" id="forn_bairro" name="forn_bairro">
+                    </div>
+                    <div class="col-md-8">
+                        <label for="forn_cidade" class="form-label">Cidade</label>
+                        <input type="text" class="form-control" id="forn_cidade" name="forn_cidade">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="forn_estado" class="form-label">UF</label>
+                        <input type="text" class="form-control" id="forn_estado" name="forn_estado" maxlength="2">
+                    </div>
+
+                    <!-- Campos de Contato do Fornecedor -->
+                    <div class="col-md-4">
+                        <label for="forn_nome_contato" class="form-label">Nome de Contato</label>
+                        <input type="text" class="form-control" id="forn_nome_contato" name="forn_nome_contato">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="forn_email" class="form-label">E-mail</label>
+                        <input type="email" class="form-control" id="forn_email" name="forn_email">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="forn_telefone" class="form-label">Telefone</label>
+                        <input type="text" class="form-control mascara-telefone" id="forn_telefone" name="forn_telefone">
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTÕES DE AÇÃO -->
+            <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                <button type="button" class="btn btn-outline-secondary" onclick="carregarTela('/kanban')">Cancelar</button>
+                <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                    <i class="fa-solid fa-floppy-disk me-2"></i>Salvar Pedido
+                </button>
+            </div>
         </form>
     </div>
 </div>
 
-<!-- SCRIPT DE AUTOPREENCHIMENTO E MÁSCARA -->
 <script>
-    // 1. Empresa: Autopreencher somente os campos de endereço
-    document.getElementById('empresa_select').addEventListener('change', function() {
-        let opt = this.options[this.selectedIndex];
-        document.getElementById('empresa_endereco').value = opt.getAttribute('data-endereco') || '';
-        document.getElementById('empresa_numero').value = opt.getAttribute('data-numero') || '';
-        document.getElementById('empresa_bairro').value = opt.getAttribute('data-bairro') || '';
-        document.getElementById('empresa_cidade').value = opt.getAttribute('data-cidade') || '';
-        document.getElementById('empresa_estado').value = opt.getAttribute('data-estado') || '';
-    });
+    (function() {
+        function aplicarMascaraTelefone(input) {
+            if (!input) return;
+            let v = input.value.replace(/\D/g, '').substring(0, 11);
+            if (v.length > 10) {
+                v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+            } else if (v.length > 5) {
+                v = v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
+            } else if (v.length > 2) {
+                v = v.replace(/^(\d{2})(\d{0,5})$/, '($1) $2');
+            } else if (v.length > 0) {
+                v = v.replace(/^(\d*)$/, '($1');
+            }
+            input.value = v;
+        }
 
-    // 2. Fornecedor: Autopreencher Endereço + Contato do Cadastro
-    document.getElementById('fornecedor_select').addEventListener('change', function() {
-        let opt = this.options[this.selectedIndex];
-        document.getElementById('fornecedor_endereco').value = opt.getAttribute('data-endereco') || '';
-        document.getElementById('fornecedor_numero').value = opt.getAttribute('data-numero') || '';
-        document.getElementById('fornecedor_bairro').value = opt.getAttribute('data-bairro') || '';
-        document.getElementById('fornecedor_cidade').value = opt.getAttribute('data-cidade') || '';
-        document.getElementById('fornecedor_estado').value = opt.getAttribute('data-estado') || '';
-        
-        document.getElementById('fornecedor_contato').value = opt.getAttribute('data-contato') || '';
-        document.getElementById('fornecedor_email').value = opt.getAttribute('data-email') || '';
-        
-        // Formata o telefone vindo do cadastro ao autopreencher
-        let telOriginal = opt.getAttribute('data-telefone') || '';
-        document.getElementById('fornecedor_telefone').value = aplicarMascaraTexto(telOriginal);
-    });
+        // --- SELEÇÃO DE EMPRESA ---
+        const selectEmpresa = document.getElementById('empresa_id');
+        if (selectEmpresa) {
+            selectEmpresa.addEventListener('change', function() {
+                const empresaId = this.value;
+                
+                // Limpa os campos de endereço
+                document.getElementById('emp_endereco').value = '';
+                document.getElementById('emp_numero').value = '';
+                document.getElementById('emp_bairro').value = '';
+                document.getElementById('emp_cidade').value = '';
+                document.getElementById('emp_estado').value = '';
 
-    // Função para aplicar máscara em tempo de digitação
-    function mascaraTelefone(input) {
-        input.value = aplicarMascaraTexto(input.value);
-    }
+                if (!empresaId) return;
 
-    // Lógica da máscara para telefones de 10 ou 11 dígitos (fixo ou celular)
-    function aplicarMascaraTexto(valor) {
-        if (!valor) return '';
-        
-        // Remove tudo que não for número
-        let nums = valor.replace(/\D/g, '');
-        
-        // Limita a 11 dígitos
-        nums = nums.substring(0, 11);
-        
-        // Aplica a formatação conforme a quantidade de números inseridos
-        if (nums.length === 0) return '';
-        if (nums.length <= 2) return `(${nums}`;
-        if (nums.length <= 6) return `(${nums.substring(0, 2)}) ${nums.substring(2)}`;
-        if (nums.length <= 10) return `(${nums.substring(0, 2)}) ${nums.substring(2, 6)}-${nums.substring(6)}`;
-        
-        // Caso tenhamos 11 dígitos (Celular / WhatsApp)
-        return `(${nums.substring(0, 2)}) ${nums.substring(2, 7)}-${nums.substring(7)}`;
-    }
+                fetch('/pedidos/api/empresa/' + empresaId)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.erro) return;
+                        // Preenche APENAS os dados de endereço da Empresa
+                        document.getElementById('emp_endereco').value = data.endereco || '';
+                        document.getElementById('emp_numero').value = data.numero || '';
+                        document.getElementById('emp_bairro').value = data.bairro || '';
+                        document.getElementById('emp_cidade').value = data.cidade || '';
+                        document.getElementById('emp_estado').value = data.estado || '';
+                        
+                        // Nota: Nome de Contato, E-mail e Telefone da empresa NÃO são preenchidos
+                        // para permitirem digitação manual.
+                    })
+                    .catch(err => console.error('Erro ao buscar empresa:', err));
+            });
+        }
+
+        // --- SELEÇÃO DE FORNECEDOR ---
+        const selectFornecedor = document.getElementById('fornecedor_id');
+        if (selectFornecedor) {
+            selectFornecedor.addEventListener('change', function() {
+                const fornecedorId = this.value;
+                
+                document.getElementById('forn_endereco').value = '';
+                document.getElementById('forn_numero').value = '';
+                document.getElementById('forn_bairro').value = '';
+                document.getElementById('forn_cidade').value = '';
+                document.getElementById('forn_estado').value = '';
+                document.getElementById('forn_nome_contato').value = '';
+                document.getElementById('forn_email').value = '';
+                document.getElementById('forn_telefone').value = '';
+
+                if (!fornecedorId) return;
+
+                fetch('/pedidos/api/fornecedor/' + fornecedorId)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.erro) return;
+                        document.getElementById('forn_endereco').value = data.endereco || '';
+                        document.getElementById('forn_numero').value = data.numero || '';
+                        document.getElementById('forn_bairro').value = data.bairro || '';
+                        document.getElementById('forn_cidade').value = data.cidade || '';
+                        document.getElementById('forn_estado').value = data.estado || '';
+                        document.getElementById('forn_nome_contato').value = data.nome_contato || '';
+                        document.getElementById('forn_email').value = data.email || '';
+
+                        const telInput = document.getElementById('forn_telefone');
+                        if (telInput) {
+                            telInput.value = data.telefone || '';
+                            aplicarMascaraTelefone(telInput);
+                        }
+                    })
+                    .catch(err => console.error('Erro ao buscar fornecedor:', err));
+            });
+        }
+
+        // Aplica a máscara aos campos de telefone
+        document.querySelectorAll('.mascara-telefone').forEach(input => {
+            input.setAttribute('maxlength', '15');
+            input.addEventListener('input', function() {
+                aplicarMascaraTelefone(this);
+            });
+        });
+    })();
 </script>
