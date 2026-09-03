@@ -1,158 +1,119 @@
-<style>
-/* Estilos do Modal com Desfoque de Fundo */
-.custom-modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(15, 23, 42, 0.4);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    z-index: 1050;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.custom-modal-dialog {
-    background: #ffffff;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 650px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    z-index: 1060;
-    overflow: hidden;
-    animation: fadeInModal 0.2s ease-out;
-}
-@keyframes fadeInModal {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
-</style>
+<div class="container-fluid p-4">
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold m-0 text-dark">Cadastro de Empresas</h3>
+        <button onclick="carregarTela('/kanban')" class="btn btn-outline-secondary btn-sm rounded-2">
+            <i class="bi bi-arrow-left"></i> Voltar ao Dashboard
+        </button>
+    </div>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0 fw-bold">Cadastro de Empresas / Filiais</h4>
-    <button onclick="carregarTela('/kanban')" class="btn btn-outline-secondary btn-sm">
-        <i class="fa-solid fa-arrow-left me-1"></i> Voltar ao Dashboard
-    </button>
-</div>
+    <div class="row g-4">
+        <!-- FORMULÁRIO DE CADASTRO DE EMPRESAS -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-3 p-3">
+                <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Cadastrar Nova Empresa</h6>
 
-{% if erro %}
-<div class="alert alert-warning alert-dismissible fade show py-2 small" role="alert">
-    <i class="fa-solid fa-triangle-exclamation me-2"></i><strong>Atenção:</strong> {{ erro }}
-    <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-{% endif %}
-
-<div class="row g-4">
-    <!-- Formulário de Cadastro -->
-    <div class="col-lg-5">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-                <h6 class="fw-bold mb-3 border-bottom pb-2">Cadastrar Nova Empresa</h6>
-                
-                <form id="form-cadastro-empresa" action="/cadastros/empresas" method="POST">
-                    <div class="row g-3">
+                <form id="formEmpresa" action="/cadastros/empresas" method="POST" onsubmit="salvarEmpresa(event)">
+                    <div class="row g-2">
                         <div class="col-md-7">
-                            <label class="form-label small fw-bold mb-1">Razão Social</label>
-                            <input type="text" name="razao_social" class="form-control form-control-sm" required>
+                            <label class="form-label small fw-semibold text-secondary">Razão Social / Nome</label>
+                            <input type="text" class="form-control form-control-sm" name="razao_social" required>
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label small fw-bold mb-1">CNPJ</label>
-                            <input type="text" name="cnpj" id="input-cnpj" class="form-control form-control-sm mascara-cnpj" data-tipo="empresa" required placeholder="00.000.000/0001-00">
+                            <label class="form-label small fw-semibold text-secondary">CNPJ / CPF</label>
+                            <input type="text" class="form-control form-control-sm mascara-cnpj-cpf" id="cnpjInput" name="cnpj" onblur="verificarCnpjExistente(this.value)" required placeholder="00.000.000/0000-00">
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold mb-1">CEP</label>
-                            <input type="text" name="cep" class="form-control form-control-sm mascara-cep" placeholder="00000-000">
+                            <label class="form-label small fw-semibold text-secondary">CEP</label>
+                            <input type="text" class="form-control form-control-sm mascara-cep" id="cepInput" name="cep" onblur="buscarCEP(this.value, '')" placeholder="00000-000">
                         </div>
                         <div class="col-md-8">
-                            <label class="form-label small fw-bold mb-1">Endereço</label>
-                            <input type="text" name="endereco" class="form-control form-control-sm" placeholder="Rua / Av.">
+                            <label class="form-label small fw-semibold text-secondary">Endereço</label>
+                            <input type="text" class="form-control form-control-sm" id="enderecoInput" name="endereco" placeholder="Rua / Av.">
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold mb-1">Número</label>
-                            <input type="text" name="numero" class="form-control form-control-sm" placeholder="Nº">
+                            <label class="form-label small fw-semibold text-secondary">Número</label>
+                            <input type="text" class="form-control form-control-sm" name="numero" placeholder="Nº">
                         </div>
                         <div class="col-md-8">
-                            <label class="form-label small fw-bold mb-1">Bairro</label>
-                            <input type="text" name="bairro" class="form-control form-control-sm">
+                            <label class="form-label small fw-semibold text-secondary">Bairro</label>
+                            <input type="text" class="form-control form-control-sm" id="bairroInput" name="bairro">
                         </div>
 
                         <div class="col-md-9">
-                            <label class="form-label small fw-bold mb-1">Cidade</label>
-                            <input type="text" name="cidade" class="form-control form-control-sm">
+                            <label class="form-label small fw-semibold text-secondary">Cidade</label>
+                            <input type="text" class="form-control form-control-sm" id="cidadeInput" name="cidade">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small fw-bold mb-1">UF</label>
-                            <input type="text" name="estado" class="form-control form-control-sm" maxlength="2" placeholder="RS">
+                            <label class="form-label small fw-semibold text-secondary">UF</label>
+                            <input type="text" class="form-control form-control-sm text-uppercase" id="ufInput" name="estado" maxlength="2">
                         </div>
 
-                        <hr class="my-2 text-muted">
-
-                        <div class="col-md-12">
-                            <label class="form-label small fw-bold mb-1">Nome do Contato</label>
-                            <input type="text" name="nome_contato" class="form-control form-control-sm" placeholder="Nome do responsável">
-                        </div>
-                        <div class="col-md-7">
-                            <label class="form-label small fw-bold mb-1">E-mail</label>
-                            <input type="email" name="email" class="form-control form-control-sm" placeholder="contato@empresa.com">
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label small fw-bold mb-1">Telefone</label>
-                            <input type="text" name="telefone" class="form-control form-control-sm mascara-telefone" placeholder="(00) 00000-0000">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-secondary">Nome do Contato</label>
+                            <input type="text" class="form-control form-control-sm" name="nome_contato">
                         </div>
 
-                        <div class="col-12 mt-4">
-                            <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">
-                                <i class="fa-solid fa-save me-1"></i> Salvar Empresa
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">E-mail</label>
+                            <input type="email" class="form-control form-control-sm" name="email">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Telefone / WhatsApp</label>
+                            <input type="text" class="form-control form-control-sm mascara-telefone" name="telefone" placeholder="(00) 00000-0000">
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="btn btn-primary w-100 fw-semibold text-white shadow-sm">
+                                <i class="bi bi-floppy me-1"></i> Salvar Empresa
                             </button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
 
-    <!-- Tabela de Empresas Cadastradas -->
-    <div class="col-lg-7">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-0">
+        <!-- TABELA DE EMPRESAS CADASTRADAS -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-3 p-3">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
                         <thead class="table-light">
-                            <tr class="small text-muted">
-                                <th class="ps-3">Razão Social / CNPJ</th>
+                            <tr>
+                                <th>Razão Social / CNPJ</th>
                                 <th>Cidade/UF</th>
                                 <th>Contato / Telefone</th>
-                                <th class="text-end pe-3">Ações</th>
+                                <th class="text-end">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="tabela-cadastros" class="small">
+                        <tbody id="tabelaEmpresas">
                             {% for empresa in empresas %}
                             <tr id="linha-empresa-{{ empresa.id }}">
-                                <td class="ps-3">
-                                    <div class="fw-bold text-dark col-razao">{{ empresa.razao_social }}</div>
-                                    <div class="text-muted small col-cnpj">{{ empresa.cnpj }}</div>
-                                </td>
-                                <td class="col-cidade-uf">{{ empresa.cidade }}/{{ empresa.estado }}</td>
                                 <td>
-                                    <div class="col-contato">{{ empresa.nome_contato or '-' }}</div>
-                                    <div class="text-muted small col-telefone">{{ empresa.telefone or '-' }}</div>
+                                    <div class="fw-bold text-dark emp-razao">{{ empresa.razao_social }}</div>
+                                    <small class="text-muted emp-cnpj">{{ empresa.cnpj }}</small>
                                 </td>
-                                <td class="text-end pe-3">
-                                    <button type="button" class="btn btn-outline-info btn-xs me-1 py-1 px-2" onclick="abrirModalEmpresa({{ empresa.id }}, 'visualizar')">
-                                        <i class="fa-solid fa-eye"></i> Visualizar
+                                <td>
+                                    <span class="emp-cidade-uf">{{ empresa.cidade }}/{{ empresa.estado }}</span>
+                                </td>
+                                <td>
+                                    <div class="emp-contato">{{ empresa.nome_contato or '-' }}</div>
+                                    <small class="text-muted emp-telefone">{{ empresa.telefone or '-' }}</small>
+                                </td>
+                                <td class="text-end">
+                                    <button onclick="abrirModalVisualizar('empresa', {{ empresa.id }})" class="btn btn-sm btn-outline-info rounded-2 me-1">
+                                        <i class="bi bi-eye"></i> Visualizar
                                     </button>
-                                    <button type="button" class="btn btn-outline-warning btn-xs py-1 px-2" onclick="abrirModalEmpresa({{ empresa.id }}, 'alterar')">
-                                        <i class="fa-solid fa-pen"></i> Alterar
+                                    <button onclick="abrirModalEditar('empresa', {{ empresa.id }})" class="btn btn-sm btn-outline-warning rounded-2">
+                                        <i class="bi bi-pencil"></i> Alterar
                                     </button>
                                 </td>
                             </tr>
                             {% else %}
-                            <tr id="tr-sem-registros">
-                                <td colspan="4" class="text-center py-4 text-muted">Nenhuma empresa cadastrada.</td>
+                            <tr id="semEmpresas">
+                                <td colspan="4" class="text-center text-muted py-4">Nenhuma empresa cadastrada.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -164,244 +125,362 @@
 </div>
 
 <!-- MODAL ALERTA CNPJ DUPLICADO -->
-<div id="modal-aviso-cnpj" class="custom-modal-backdrop d-none">
-    <div class="custom-modal-dialog p-4 text-center" style="max-width: 400px;">
-        <i class="fa-solid fa-circle-exclamation text-warning display-4 mb-3"></i>
-        <h5 class="fw-bold text-dark mb-2">CNPJ Já Cadastrado</h5>
-        <p class="text-muted small mb-4">Este CNPJ já está cadastrado no sistema. As informações digitadas serão limpas.</p>
-        <button type="button" class="btn btn-primary btn-sm px-4 fw-bold" onclick="fecharAvisoCNPJ()">OK</button>
+<div id="alertaCnpjModal" class="cnpj-modal-backdrop" style="display: none;">
+    <div class="cnpj-modal-card">
+        <div class="cnpj-modal-icon">!</div>
+        <h5 class="fw-bold text-dark mb-2">CNPJ/CPF Já Cadastrado</h5>
+        <p class="text-secondary small mb-4">Este documento já está cadastrado no sistema. As informações digitadas serão limpas.</p>
+        <button type="button" class="btn btn-primary px-4 fw-semibold" onclick="fecharAlertaCnpj()">OK</button>
     </div>
 </div>
 
-<!-- MODAL DETALHES (VISUALIZAR / ALTERAR) -->
-<div id="modal-detalhes" class="custom-modal-backdrop d-none">
-    <div class="custom-modal-dialog">
-        <div class="d-flex justify-content-between align-items-center px-4 py-3 bg-light border-bottom">
-            <h6 class="fw-bold mb-0 text-dark" id="modal-titulo">Detalhes da Empresa</h6>
-            <button type="button" class="btn-close" onclick="fecharModalDetalhes()"></button>
+<!-- MODAL DE VISUALIZAÇÃO E EDIÇÃO -->
+<div class="modal fade" id="modalRegistro" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark" id="modalRegistroTitulo">Detalhes da Empresa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="formModalRegistro">
+                    <input type="hidden" id="modalRegistroId">
+                    <input type="hidden" id="modalRegistroTipo">
+
+                    <div class="row g-2">
+                        <div class="col-md-7">
+                            <label class="form-label small fw-semibold text-secondary">Razão Social / Nome</label>
+                            <input type="text" class="form-control form-control-sm" id="mRazaoSocial" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small fw-semibold text-secondary">CNPJ / CPF</label>
+                            <input type="text" class="form-control form-control-sm mascara-cnpj-cpf" id="mCnpj" readonly disabled>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-secondary">CEP</label>
+                            <input type="text" class="form-control form-control-sm mascara-cep" id="mCep" onblur="buscarCEP(this.value, 'm')" placeholder="00000-000">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label small fw-semibold text-secondary">Endereço</label>
+                            <input type="text" class="form-control form-control-sm" id="mEndereco">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-secondary">Número</label>
+                            <input type="text" class="form-control form-control-sm" id="mNumero">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label small fw-semibold text-secondary">Bairro</label>
+                            <input type="text" class="form-control form-control-sm" id="mBairro">
+                        </div>
+
+                        <div class="col-md-9">
+                            <label class="form-label small fw-semibold text-secondary">Cidade</label>
+                            <input type="text" class="form-control form-control-sm" id="mCidade">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold text-secondary">UF</label>
+                            <input type="text" class="form-control form-control-sm text-uppercase" id="mEstado" maxlength="2">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-secondary">Nome do Contato</label>
+                            <input type="text" class="form-control form-control-sm" id="mNomeContato">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">E-mail</label>
+                            <input type="email" class="form-control form-control-sm" id="mEmail">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Telefone / WhatsApp</label>
+                            <input type="text" class="form-control form-control-sm mascara-telefone" id="mTelefone" placeholder="(00) 00000-0000">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary btn-sm text-white fw-semibold" id="btnSalvarModal" onclick="salvarAlteracaoModal()">Salvar Alterações</button>
+            </div>
         </div>
-        <form id="form-modal-detalhes" class="p-4">
-            <input type="hidden" id="modal_id">
-            <div class="row g-3">
-                <div class="col-md-7">
-                    <label class="form-label small fw-bold mb-1">Razão Social</label>
-                    <input type="text" id="modal_razao_social" name="razao_social" class="form-control form-control-sm" required>
-                </div>
-                <div class="col-md-5">
-                    <label class="form-label small fw-bold mb-1">CNPJ</label>
-                    <input type="text" id="modal_cnpj" name="cnpj" class="form-control form-control-sm mascara-cnpj" readonly>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label small fw-bold mb-1">CEP</label>
-                    <input type="text" id="modal_cep" name="cep" class="form-control form-control-sm mascara-cep">
-                </div>
-                <div class="col-md-8">
-                    <label class="form-label small fw-bold mb-1">Endereço</label>
-                    <input type="text" id="modal_endereco" name="endereco" class="form-control form-control-sm">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label small fw-bold mb-1">Número</label>
-                    <input type="text" id="modal_numero" name="numero" class="form-control form-control-sm">
-                </div>
-                <div class="col-md-8">
-                    <label class="form-label small fw-bold mb-1">Bairro</label>
-                    <input type="text" id="modal_bairro" name="bairro" class="form-control form-control-sm">
-                </div>
-                <div class="col-md-9">
-                    <label class="form-label small fw-bold mb-1">Cidade</label>
-                    <input type="text" id="modal_cidade" name="cidade" class="form-control form-control-sm">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small fw-bold mb-1">UF</label>
-                    <input type="text" id="modal_estado" name="estado" class="form-control form-control-sm" maxlength="2">
-                </div>
-                <div class="col-md-12">
-                    <label class="form-label small fw-bold mb-1">Nome do Contato</label>
-                    <input type="text" id="modal_nome_contato" name="nome_contato" class="form-control form-control-sm">
-                </div>
-                <div class="col-md-7">
-                    <label class="form-label small fw-bold mb-1">E-mail</label>
-                    <input type="email" id="modal_email" name="email" class="form-control form-control-sm">
-                </div>
-                <div class="col-md-5">
-                    <label class="form-label small fw-bold mb-1">Telefone</label>
-                    <input type="text" id="modal_telefone" name="telefone" class="form-control form-control-sm mascara-telefone">
-                </div>
-            </div>
-            <div class="d-flex justify-content-end gap-2 border-top pt-3 mt-4">
-                <button type="button" class="btn btn-secondary btn-sm fw-bold" onclick="fecharModalDetalhes()">Fechar</button>
-                <button type="submit" id="btn-salvar-modal" class="btn btn-primary btn-sm fw-bold">Salvar Alterações</button>
-            </div>
-        </form>
     </div>
 </div>
+
+<style>
+.cnpj-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.cnpj-modal-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    animation: fadeInModal 0.2s ease-out;
+}
+
+.cnpj-modal-icon {
+    width: 56px;
+    height: 56px;
+    background-color: #ffc107;
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px auto;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+</style>
 
 <script>
-(function() {
-    // --- MÁSCARAS NUMÉRICAS ---
-    function formatarCEP(v) {
-        v = v.replace(/\D/g, '').substring(0, 8);
-        return v.replace(/^(\d{5})(\d)/, '$1-$2');
-    }
-    function formatarCNPJ(v) {
-        v = v.replace(/\D/g, '').substring(0, 14);
+// FUNÇÕES DE MÁSCARA
+function formatarCnpjCpf(v) {
+    v = v.replace(/\D/g, '');
+    if (v.length <= 11) {
+        v = v.substring(0, 11);
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    } else {
+        v = v.substring(0, 14);
         v = v.replace(/^(\d{2})(\d)/, '$1.$2');
         v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
         v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
-        return v.replace(/(\d{4})(\d)/, '$1-$2');
+        v = v.replace(/(\d{4})(\d)/, '$1-$2');
     }
-    function formatarTelefone(v) {
-        v = v.replace(/\D/g, '').substring(0, 11);
-        if (v.length > 10) return v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
-        if (v.length > 5) return v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
-        if (v.length > 2) return v.replace(/^(\d{2})(\d{0,5})$/, '($1) $2');
-        if (v.length > 0) return v.replace(/^(\d*)$/, '($1');
-        return v;
-    }
-
-    document.querySelectorAll('.mascara-cep').forEach(el => el.addEventListener('input', function() { this.value = formatarCEP(this.value); }));
-    document.querySelectorAll('.mascara-cnpj').forEach(el => el.addEventListener('input', function() { this.value = formatarCNPJ(this.value); }));
-    document.querySelectorAll('.mascara-telefone').forEach(el => el.addEventListener('input', function() { this.value = formatarTelefone(this.value); }));
-
-    // --- VERIFICAÇÃO CNPJ EM TEMPO REAL ---
-    const inputCNPJ = document.getElementById('input-cnpj');
-    if (inputCNPJ) {
-        inputCNPJ.addEventListener('blur', function() {
-            const cnpjLimpo = this.value.replace(/\D/g, '');
-            if (cnpjLimpo.length === 14) {
-                fetch(`/cadastros/verificar-cnpj?cnpj=${cnpjLimpo}&tipo=empresa`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.existe) {
-                            document.getElementById('modal-aviso-cnpj').classList.remove('d-none');
-                        }
-                    });
-            }
-        });
-    }
-
-    // --- SALVAR NOVO VIA AJAX E ADICIONAR NA TABELA ---
-    const formCadastro = document.getElementById('form-cadastro-empresa');
-    if (formCadastro) {
-        formCadastro.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-
-            fetch('/cadastros/empresas', {
-                method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.sucesso) {
-                    const item = data.item;
-                    const semReg = document.getElementById('tr-sem-registros');
-                    if (semReg) semReg.remove();
-
-                    const tbody = document.getElementById('tabela-cadastros');
-                    const tr = document.createElement('tr');
-                    tr.id = `linha-empresa-${item.id}`;
-                    tr.innerHTML = `
-                        <td class="ps-3">
-                            <div class="fw-bold text-dark col-razao">${item.razao_social}</div>
-                            <div class="text-muted small col-cnpj">${formatarCNPJ(item.cnpj)}</div>
-                        </td>
-                        <td class="col-cidade-uf">${item.cidade || ''}/${item.estado || ''}</td>
-                        <td>
-                            <div class="col-contato">${item.nome_contato || '-'}</div>
-                            <div class="text-muted small col-telefone">${item.telefone ? formatarTelefone(item.telefone) : '-'}</div>
-                        </td>
-                        <td class="text-end pe-3">
-                            <button type="button" class="btn btn-outline-info btn-xs me-1 py-1 px-2" onclick="abrirModalEmpresa(${item.id}, 'visualizar')">
-                                <i class="fa-solid fa-eye"></i> Visualizar
-                            </button>
-                            <button type="button" class="btn btn-outline-warning btn-xs py-1 px-2" onclick="abrirModalEmpresa(${item.id}, 'alterar')">
-                                <i class="fa-solid fa-pen"></i> Alterar
-                            </button>
-                        </td>
-                    `;
-                    tbody.insertBefore(tr, tbody.firstChild);
-                    formCadastro.reset();
-                } else if (data.erro) {
-                    document.getElementById('modal-aviso-cnpj').classList.remove('d-none');
-                }
-            });
-        });
-    }
-
-    // --- SALVAR ALTERAÇÃO DO MODAL ---
-    const formModal = document.getElementById('form-modal-detalhes');
-    if (formModal) {
-        formModal.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const regId = document.getElementById('modal_id').value;
-            const formData = new FormData(this);
-
-            fetch(`/cadastros/api/empresa/atualizar/${regId}`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.sucesso) {
-                    const item = data.item;
-                    const tr = document.getElementById(`linha-empresa-${item.id}`);
-                    if (tr) {
-                        tr.querySelector('.col-razao').innerText = item.razao_social;
-                        tr.querySelector('.col-cidade-uf').innerText = `${item.cidade || ''}/${item.estado || ''}`;
-                        tr.querySelector('.col-contato').innerText = item.nome_contato || '-';
-                        tr.querySelector('.col-telefone').innerText = item.telefone ? formatarTelefone(item.telefone) : '-';
-                    }
-                    fecharModalDetalhes();
-                }
-            });
-        });
-    }
-})();
-
-function fecharAvisoCNPJ() {
-    document.getElementById('modal-aviso-cnpj').classList.add('d-none');
-    document.getElementById('form-cadastro-empresa').reset();
+    return v;
 }
 
-function fecharModalDetalhes() {
-    document.getElementById('modal-detalhes').classList.add('d-none');
+function formatarCep(v) {
+    v = v.replace(/\D/g, '').substring(0, 8);
+    return v.replace(/^(\d{5})(\d)/, '$1-$2');
 }
 
-function abrirModalEmpresa(id, modo) {
-    fetch(`/cadastros/api/empresa/${id}`)
+function formatarTelefone(v) {
+    v = v.replace(/\D/g, '').substring(0, 11);
+    if (v.length > 10) return v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+    if (v.length > 5) return v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
+    if (v.length > 2) return v.replace(/^(\d{2})(\d{0,5})$/, '($1) $2');
+    if (v.length > 0) return v.replace(/^(\d*)$/, '($1');
+    return v;
+}
+
+// Aplicar ouvintes dinâmicos
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('mascara-cnpj-cpf')) {
+        e.target.value = formatarCnpjCpf(e.target.value);
+    }
+    if (e.target.classList.contains('mascara-cep')) {
+        e.target.value = formatarCep(e.target.value);
+    }
+    if (e.target.classList.contains('mascara-telefone')) {
+        e.target.value = formatarTelefone(e.target.value);
+    }
+});
+
+// Verificar CNPJ
+function verificarCnpjExistente(cnpj) {
+    const cnpjLimpo = cnpj.replace(/\D/g, '');
+    if (cnpjLimpo.length < 11) return;
+
+    fetch(`/cadastros/verificar-cnpj?cnpj=${cnpjLimpo}&tipo=empresa`)
         .then(res => res.json())
-        .then(item => {
-            document.getElementById('modal_id').value = item.id;
-            document.getElementById('modal_razao_social').value = item.razao_social || '';
-            document.getElementById('modal_cnpj').value = item.cnpj || '';
-            document.getElementById('modal_cep').value = item.cep || '';
-            document.getElementById('modal_endereco').value = item.endereco || '';
-            document.getElementById('modal_numero').value = item.numero || '';
-            document.getElementById('modal_bairro').value = item.bairro || '';
-            document.getElementById('modal_cidade').value = item.cidade || '';
-            document.getElementById('modal_estado').value = item.estado || '';
-            document.getElementById('modal_nome_contato').value = item.nome_contato || '';
-            document.getElementById('modal_email').value = item.email || '';
-            document.getElementById('modal_telefone').value = item.telefone || '';
+        .then(data => {
+            if (data.existe) {
+                document.getElementById('alertaCnpjModal').style.display = 'flex';
+            }
+        })
+        .catch(err => console.error('Erro ao verificar documento:', err));
+}
 
-            const inputs = document.querySelectorAll('#form-modal-detalhes input');
-            const btnSalvar = document.getElementById('btn-salvar-modal');
-            const titulo = document.getElementById('modal-titulo');
+function fecharAlertaCnpj() {
+    document.getElementById('alertaCnpjModal').style.display = 'none';
+    const form = document.getElementById('formEmpresa');
+    if (form) form.reset();
+}
 
-            if (modo === 'visualizar') {
-                titulo.innerText = 'Visualizar Empresa';
-                inputs.forEach(inp => inp.setAttribute('disabled', 'true'));
-                btnSalvar.classList.add('d-none');
-            } else {
-                titulo.innerText = 'Alterar Empresa';
-                inputs.forEach(inp => inp.removeAttribute('disabled'));
-                document.getElementById('modal_cnpj').setAttribute('readonly', 'true');
-                btnSalvar.classList.remove('d-none');
+// Autopreenchimento CEP
+function buscarCEP(cep, prefixo = '') {
+    const cepLimpo = cep.replace(/\D/g, '');
+    if (cepLimpo.length !== 8) return;
+
+    const p = prefixo ? prefixo.toLowerCase() : '';
+    const campoEndereco = p ? 'mEndereco' : 'enderecoInput';
+    const campoBairro = p ? 'mBairro' : 'bairroInput';
+    const campoCidade = p ? 'mCidade' : 'cidadeInput';
+    const campoUf = p ? 'mEstado' : 'ufInput';
+
+    fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.erro) {
+                document.getElementById(campoEndereco).value = data.logradouro || '';
+                document.getElementById(campoBairro).value = data.bairro || '';
+                document.getElementById(campoCidade).value = data.localidade || '';
+                document.getElementById(campoUf).value = data.uf || '';
+            }
+        })
+        .catch(err => console.error('Erro ao buscar CEP:', err));
+}
+
+// Salvar Empresa via AJAX
+function salvarEmpresa(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+
+    fetch(form.action, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.sucesso) {
+            form.reset();
+            adicionarLinhaTabela(data.item);
+        } else {
+            alert(data.erro || 'Erro ao salvar empresa');
+        }
+    })
+    .catch(err => console.error('Erro ao salvar:', err));
+}
+
+function adicionarLinhaTabela(item) {
+    const tabela = document.getElementById('tabelaEmpresas');
+    const semEmpresas = document.getElementById('semEmpresas');
+    if (semEmpresas) semEmpresas.remove();
+
+    const tr = document.createElement('tr');
+    tr.id = `linha-empresa-${item.id}`;
+    tr.innerHTML = `
+        <td>
+            <div class="fw-bold text-dark emp-razao">${item.razao_social}</div>
+            <small class="text-muted emp-cnpj">${formatarCnpjCpf(item.cnpj || '')}</small>
+        </td>
+        <td>
+            <span class="emp-cidade-uf">${item.cidade || ''}/${item.estado || ''}</span>
+        </td>
+        <td>
+            <div class="emp-contato">${item.nome_contato || '-'}</div>
+            <small class="text-muted emp-telefone">${item.telefone ? formatarTelefone(item.telefone) : '-'}</small>
+        </td>
+        <td class="text-end">
+            <button onclick="abrirModalVisualizar('empresa', ${item.id})" class="btn btn-sm btn-outline-info rounded-2 me-1">
+                <i class="bi bi-eye"></i> Visualizar
+            </button>
+            <button onclick="abrirModalEditar('empresa', ${item.id})" class="btn btn-sm btn-outline-warning rounded-2">
+                <i class="bi bi-pencil"></i> Alterar
+            </button>
+        </td>
+    `;
+    tabela.prepend(tr);
+}
+
+function abrirModalVisualizar(tipo, id) {
+    carregarDadosModal(tipo, id, true);
+}
+
+function abrirModalEditar(tipo, id) {
+    carregarDadosModal(tipo, id, false);
+}
+
+function carregarDadosModal(tipo, id, desabilitado) {
+    fetch(`/cadastros/api/${tipo}/${id}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.erro) {
+                alert(data.erro);
+                return;
             }
 
-            document.getElementById('modal-detalhes').classList.remove('d-none');
+            document.getElementById('modalRegistroId').value = data.id;
+            document.getElementById('modalRegistroTipo').value = tipo;
+            document.getElementById('mRazaoSocial').value = data.razao_social || '';
+            document.getElementById('mCnpj').value = formatarCnpjCpf(data.cnpj || '');
+            document.getElementById('mCep').value = formatarCep(data.cep || '');
+            document.getElementById('mEndereco').value = data.endereco || '';
+            document.getElementById('mNumero').value = data.numero || '';
+            document.getElementById('mBairro').value = data.bairro || '';
+            document.getElementById('mCidade').value = data.cidade || '';
+            document.getElementById('mEstado').value = data.estado || '';
+            document.getElementById('mNomeContato').value = data.nome_contato || '';
+            document.getElementById('mEmail').value = data.email || '';
+            document.getElementById('mTelefone').value = formatarTelefone(data.telefone || '');
+
+            const inputs = document.querySelectorAll('#formModalRegistro input:not(#mCnpj)');
+            inputs.forEach(input => input.disabled = desabilitado);
+
+            const btnSalvar = document.getElementById('btnSalvarModal');
+            btnSalvar.style.display = desabilitado ? 'none' : 'block';
+
+            document.getElementById('modalRegistroTitulo').innerText = desabilitado ? 'Visualizar Empresa' : 'Editar Empresa';
+
+            const modalElement = document.getElementById('modalRegistro');
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modalInstance.show();
         });
+}
+
+function salvarAlteracaoModal() {
+    const id = document.getElementById('modalRegistroId').value;
+    const tipo = document.getElementById('modalRegistroTipo').value;
+
+    const formData = new FormData();
+    formData.append('razao_social', document.getElementById('mRazaoSocial').value);
+    formData.append('cep', document.getElementById('mCep').value);
+    formData.append('endereco', document.getElementById('mEndereco').value);
+    formData.append('numero', document.getElementById('mNumero').value);
+    formData.append('bairro', document.getElementById('mBairro').value);
+    formData.append('cidade', document.getElementById('mCidade').value);
+    formData.append('estado', document.getElementById('mEstado').value);
+    formData.append('nome_contato', document.getElementById('mNomeContato').value);
+    formData.append('email', document.getElementById('mEmail').value);
+    formData.append('telefone', document.getElementById('mTelefone').value);
+
+    fetch(`/cadastros/api/${tipo}/atualizar/${id}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.sucesso) {
+            const tr = document.getElementById(`linha-${tipo}-${id}`);
+            if (tr) {
+                tr.querySelector('.emp-razao').innerText = data.item.razao_social;
+                tr.querySelector('.emp-cidade-uf').innerText = `${data.item.cidade || ''}/${data.item.estado || ''}`;
+                tr.querySelector('.emp-contato').innerText = data.item.nome_contato || '-';
+                tr.querySelector('.emp-telefone').innerText = data.item.telefone ? formatarTelefone(data.item.telefone) : '-';
+            }
+
+            const modalElement = document.getElementById('modalRegistro');
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) modalInstance.hide();
+        } else {
+            alert(data.erro || 'Erro ao atualizar registro');
+        }
+    })
+    .catch(err => console.error('Erro ao atualizar:', err));
 }
 </script>

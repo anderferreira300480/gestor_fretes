@@ -97,9 +97,14 @@ def atualizar_registro(tipo, registro_id):
                 'id': item.id,
                 'razao_social': item.razao_social,
                 'cnpj': item.cnpj,
+                'cep': item.cep,
+                'endereco': item.endereco,
+                'numero': item.numero,
+                'bairro': item.bairro,
                 'cidade': item.cidade,
                 'estado': item.estado,
                 'nome_contato': item.nome_contato,
+                'email': item.email,
                 'telefone': item.telefone
             }
         })
@@ -118,7 +123,7 @@ def empresas():
         
         if empresa_existente:
             erro = "Empresa/Filial com este CNPJ já está cadastrada no sistema!"
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
                 return jsonify({'sucesso': False, 'erro': erro}), 400
         else:
             nova_empresa = Empresa(
@@ -137,26 +142,33 @@ def empresas():
             db.session.add(nova_empresa)
             db.session.commit()
 
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
                 return jsonify({
                     'sucesso': True,
                     'item': {
                         'id': nova_empresa.id,
                         'razao_social': nova_empresa.razao_social,
                         'cnpj': nova_empresa.cnpj,
+                        'cep': nova_empresa.cep,
+                        'endereco': nova_empresa.endereco,
+                        'numero': nova_empresa.numero,
+                        'bairro': nova_empresa.bairro,
                         'cidade': nova_empresa.cidade,
                         'estado': nova_empresa.estado,
                         'nome_contato': nova_empresa.nome_contato,
+                        'email': nova_empresa.email,
                         'telefone': nova_empresa.telefone
                     }
                 })
 
     empresas_list = Empresa.query.all()
     
+    # Se for requisição AJAX (carregarTela do SPA) renderiza apenas o fragmento HTML
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return render_template('cadastros/empresas.html', empresas=empresas_list, erro=erro)
     
-    return render_template('base.html', empresas=empresas_list, erro=erro, tela_ativa='empresas')
+    # Se for acesso direto pela URL no navegador, renderiza o template base da página
+    return render_template('cadastros/empresas.html', empresas=empresas_list, erro=erro)
 
 
 # --- TRANSPORTADORAS ---
@@ -169,7 +181,7 @@ def transportadoras():
         
         if transp_existente:
             erro = "Transportadora com este CNPJ já está cadastrada no sistema!"
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
                 return jsonify({'sucesso': False, 'erro': erro}), 400
         else:
             nova_transp = Transportadora(
@@ -188,26 +200,27 @@ def transportadoras():
             db.session.add(nova_transp)
             db.session.commit()
 
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
                 return jsonify({
                     'sucesso': True,
                     'item': {
                         'id': nova_transp.id,
                         'razao_social': nova_transp.razao_social,
                         'cnpj': nova_transp.cnpj,
+                        'cep': nova_transp.cep,
+                        'endereco': nova_transp.endereco,
+                        'numero': nova_transp.numero,
+                        'bairro': nova_transp.bairro,
                         'cidade': nova_transp.cidade,
                         'estado': nova_transp.estado,
                         'nome_contato': nova_transp.nome_contato,
+                        'email': nova_transp.email,
                         'telefone': nova_transp.telefone
                     }
                 })
 
     transportadoras_list = Transportadora.query.all()
-    
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return render_template('cadastros/transportadoras.html', transportadoras=transportadoras_list, erro=erro)
-    
-    return render_template('base.html', transportadoras=transportadoras_list, erro=erro, tela_ativa='transportadoras')
+    return render_template('cadastros/transportadoras.html', transportadoras=transportadoras_list, erro=erro)
 
 
 # --- FORNECEDORES ---
@@ -220,7 +233,7 @@ def fornecedores():
         
         if forn_existente:
             erro = "Fornecedor com este CNPJ já está cadastrado no sistema!"
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
                 return jsonify({'sucesso': False, 'erro': erro}), 400
         else:
             novo_forn = Fornecedor(
@@ -239,23 +252,24 @@ def fornecedores():
             db.session.add(novo_forn)
             db.session.commit()
 
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
                 return jsonify({
                     'sucesso': True,
                     'item': {
                         'id': novo_forn.id,
                         'razao_social': novo_forn.razao_social,
                         'cnpj': novo_forn.cnpj,
+                        'cep': novo_forn.cep,
+                        'endereco': novo_forn.endereco,
+                        'numero': novo_forn.numero,
+                        'bairro': novo_forn.bairro,
                         'cidade': novo_forn.cidade,
                         'estado': novo_forn.estado,
                         'nome_contato': novo_forn.nome_contato,
+                        'email': novo_forn.email,
                         'telefone': novo_forn.telefone
                     }
                 })
 
     fornecedores_list = Fornecedor.query.all()
-    
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return render_template('cadastros/fornecedores.html', fornecedores=fornecedores_list, erro=erro)
-    
-    return render_template('base.html', fornecedores=fornecedores_list, erro=erro, tela_ativa='fornecedores')
+    return render_template('cadastros/fornecedores.html', fornecedores=fornecedores_list, erro=erro)
