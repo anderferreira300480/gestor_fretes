@@ -69,17 +69,19 @@
                 {% for p in kanban.em_cotacao %}
                 <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
                     <small class="fw-bold text-dark d-block">
-                        <a href="javascript:void(0)" onclick="carregarTela('/pedidos/{{ p.id }}/detalhes')" class="text-decoration-none text-dark">
-                            CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
-                        </a>
+                        CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
                     </small>
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
                     <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
                     
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top" style="font-size: 0.75rem;">
-                        <span class="text-muted"><i class="fa-solid fa-paperclip"></i> Anexo NF</span>
-                        <span class="text-muted"><i class="fa-regular fa-clock"></i> Prazos</span>
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                        <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                            <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
+                        </button>
+                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                            <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                        </button>
                     </div>
                 </div>
                 {% endfor %}
@@ -97,17 +99,19 @@
                 {% for p in kanban.aguardando_coleta %}
                 <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
                     <small class="fw-bold text-dark d-block">
-                        <a href="javascript:void(0)" onclick="carregarTela('/pedidos/{{ p.id }}/detalhes')" class="text-decoration-none text-dark">
-                            CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
-                        </a>
+                        CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
                     </small>
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
                     <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
                     
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top" style="font-size: 0.75rem;">
-                        <span class="text-muted"><i class="fa-solid fa-paperclip"></i> Anexo NF</span>
-                        <span class="text-muted"><i class="fa-regular fa-clock"></i> Prazos</span>
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                        <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                            <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
+                        </button>
+                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                            <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                        </button>
                     </div>
                 </div>
                 {% endfor %}
@@ -125,17 +129,19 @@
                 {% for p in kanban.em_transito %}
                 <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
                     <small class="fw-bold text-dark d-block">
-                        <a href="javascript:void(0)" onclick="carregarTela('/pedidos/{{ p.id }}/detalhes')" class="text-decoration-none text-dark">
-                            CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
-                        </a>
+                        CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
                     </small>
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
                     <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
                     
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top" style="font-size: 0.75rem;">
-                        <span class="text-muted"><i class="fa-solid fa-paperclip"></i> Anexo NF</span>
-                        <span class="text-muted"><i class="fa-regular fa-clock"></i> Prazos</span>
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                        <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                            <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
+                        </button>
+                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                            <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                        </button>
                     </div>
                 </div>
                 {% endfor %}
@@ -154,17 +160,19 @@
                 <div class="card shadow-sm mb-2 p-2 border-0 bg-white position-relative">
                     <i class="fa-solid fa-circle-check text-success position-absolute top-0 end-0 m-2"></i>
                     <small class="fw-bold text-dark d-block me-3">
-                        <a href="javascript:void(0)" onclick="carregarTela('/pedidos/{{ p.id }}/detalhes')" class="text-decoration-none text-dark">
-                            CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
-                        </a>
+                        CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
                     </small>
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
                     <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
                     
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top" style="font-size: 0.75rem;">
-                        <span class="text-muted"><i class="fa-solid fa-paperclip"></i> Anexo NF</span>
-                        <span class="text-muted"><i class="fa-regular fa-clock"></i> Prazos</span>
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                        <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                            <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
+                        </button>
+                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                            <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                        </button>
                     </div>
                 </div>
                 {% endfor %}
@@ -183,17 +191,19 @@
                 <div class="card shadow-sm mb-2 p-2 border-0 bg-white position-relative">
                     <i class="fa-solid fa-circle-xmark text-danger position-absolute top-0 end-0 m-2"></i>
                     <small class="fw-bold text-dark d-block me-3">
-                        <a href="javascript:void(0)" onclick="carregarTela('/pedidos/{{ p.id }}/detalhes')" class="text-decoration-none text-dark">
-                            CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
-                        </a>
+                        CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
                     </small>
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
                     <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
                     
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top" style="font-size: 0.75rem;">
-                        <span class="text-muted"><i class="fa-solid fa-paperclip"></i> Anexo NF</span>
-                        <span class="text-muted"><i class="fa-regular fa-clock"></i> Prazos</span>
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                        <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                            <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
+                        </button>
+                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                            <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                        </button>
                     </div>
                 </div>
                 {% endfor %}
@@ -202,3 +212,165 @@
     </div>
 
 </div>
+
+<!-- MODAL COTAÇÕES -->
+<div class="modal fade" id="modalCotacao" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-dark">Lançar Cotação - Pedido <span id="modalCotacaoPedidoNum"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovaCotacao" method="POST" action="" class="row g-2 mb-4 p-3 border rounded bg-light">
+                    <div class="col-md-5">
+                        <label class="form-label small fw-bold">Transportadora</label>
+                        <select class="form-select form-select-sm" name="transportadora_id" required>
+                            <option value="">Selecione...</option>
+                            {% for t in transportadoras_list %}
+                                <option value="{{ t.id }}">{{ t.razao_social }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Valor Frete (R$)</label>
+                        <input type="number" step="0.01" class="form-control form-control-sm" name="valor_frete" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">Prazo (Dias)</label>
+                        <input type="number" class="form-control form-control-sm" name="prazo_dias">
+                    </div>
+                    <div class="col-12 text-end mt-3">
+                        <button type="submit" class="btn btn-sm btn-success fw-bold"><i class="fa-solid fa-check me-1"></i> Salvar Cotação</button>
+                    </div>
+                </form>
+
+                <h6 class="fw-bold mb-2">Cotações Lançadas:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle" id="tabelaCotacoes">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Transportadora</th>
+                                <th>Valor Frete</th>
+                                <th>Prazo (Dias)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ANEXOS -->
+<div class="modal fade" id="modalAnexos" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-dark">Documentos & Anexos - Pedido <span id="modalAnexoPedidoNum"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovoAnexo" method="POST" action="" enctype="multipart/form-data" class="row g-2 mb-4 p-3 border rounded bg-light">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Tipo de Documento</label>
+                        <select class="form-select form-select-sm" name="tipo_documento" required>
+                            <option value="Nota Fiscal">Nota Fiscal (NF)</option>
+                            <option value="CTe">CTe</option>
+                            <option value="Ordem de Compra">Ordem de Compra</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold">Arquivo</label>
+                        <input type="file" class="form-control form-control-sm" name="arquivo" required>
+                    </div>
+                    <div class="col-12 text-end mt-3">
+                        <button type="submit" class="btn btn-sm btn-primary fw-bold"><i class="fa-solid fa-upload me-1"></i> Enviar Arquivo</button>
+                    </div>
+                </form>
+
+                <h6 class="fw-bold mb-2">Arquivos Anexados:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle" id="tabelaAnexos">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Nome do Arquivo</th>
+                                <th>Data Upload</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function abrirModalCotacao(pedidoId, numeroPedido) {
+    document.getElementById('modalCotacaoPedidoNum').innerText = numeroPedido;
+    document.getElementById('formNovaCotacao').action = '/pedidos/' + pedidoId + '/incluir_cotacao';
+
+    fetch('/pedidos/' + pedidoId + '/cotacoes')
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.querySelector('#tabelaCotacoes tbody');
+            tbody.innerHTML = '';
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Nenhuma cotação registrada.</td></tr>';
+            } else {
+                data.forEach(c => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${c.transportadora_nome}</td>
+                            <td>R$ ${c.valor_frete.toFixed(2)}</td>
+                            <td>${c.prazo_dias} dias</td>
+                            <td>${c.aprovada ? '<span class="badge bg-success">Aprovada</span>' : '<span class="badge bg-secondary">Pendente</span>'}</td>
+                        </tr>
+                    `;
+                });
+            }
+            new bootstrap.Modal(document.getElementById('modalCotacao')).show();
+        });
+}
+
+function abrirModalAnexos(pedidoId, numeroPedido) {
+    document.getElementById('modalAnexoPedidoNum').innerText = numeroPedido;
+    document.getElementById('formNovoAnexo').action = '/pedidos/' + pedidoId + '/anexos';
+
+    fetch('/pedidos/' + pedidoId + '/anexos')
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.querySelector('#tabelaAnexos tbody');
+            tbody.innerHTML = '';
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Nenhum anexo encontrado.</td></tr>';
+            } else {
+                data.forEach(a => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><span class="badge bg-info text-dark">${a.tipo_documento}</span></td>
+                            <td>${a.nome_arquivo}</td>
+                            <td>${a.data_upload}</td>
+                            <td>
+                                <a href="/pedidos/uploads/${a.nome_arquivo}" target="_blank" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;">
+                                    <i class="fa-solid fa-eye"></i> Visualizar
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            new bootstrap.Modal(document.getElementById('modalAnexos')).show();
+        });
+}
+</script>

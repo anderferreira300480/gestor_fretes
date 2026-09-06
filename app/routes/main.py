@@ -1,6 +1,6 @@
 # app/routes/main.py
 from flask import Blueprint, render_template, request
-from app.models import Pedido, Empresa
+from app.models import Pedido, Empresa, Fornecedor, Transportadora
 
 main_bp = Blueprint('main', __name__)
 
@@ -24,7 +24,9 @@ def index():
         'ocorrencia': [p for p in pedidos if p.status == 'ocorrencia']
     }
 
-    empresas_list = Empresa.query.all()
+    empresas_list = Empresa.query.order_by(Empresa.razao_social).all()
+    fornecedores_list = Fornecedor.query.order_by(Fornecedor.razao_social).all()
+    transportadoras_list = Transportadora.query.order_by(Transportadora.razao_social).all()
 
     # Verifica se a requisição veio via JS/AJAX (carregarTela)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -32,6 +34,8 @@ def index():
             'dashboard/kanban.html',
             kanban=kanban_data,
             empresas_list=empresas_list,
+            fornecedores_list=fornecedores_list,
+            transportadoras_list=transportadoras_list,
             empresa_selecionada=empresa_id,
             total_economia="0,00",
             valor_medio="0,00"
@@ -42,6 +46,8 @@ def index():
         'base.html', 
         kanban=kanban_data, 
         empresas_list=empresas_list,
+        fornecedores_list=fornecedores_list,
+        transportadoras_list=transportadoras_list,
         empresa_selecionada=empresa_id,
         total_economia="0,00",
         valor_medio="0,00"

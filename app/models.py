@@ -62,6 +62,7 @@ class Pedido(db.Model):
     fornecedor_id = db.Column(db.Integer, db.ForeignKey('fornecedores.id'), nullable=True)
     
     cotacoes = db.relationship('CotacaoFrete', backref='pedido', lazy=True, cascade="all, delete-orphan")
+    anexos = db.relationship('Anexo', backref='pedido', lazy=True, cascade="all, delete-orphan")
 
 class CotacaoFrete(db.Model):
     __tablename__ = 'cotacoes'
@@ -73,6 +74,16 @@ class CotacaoFrete(db.Model):
     pedido_id = db.Column(db.Integer, db.ForeignKey('pedidos.id'), nullable=False)
     transportadora_id = db.Column(db.Integer, db.ForeignKey('transportadoras.id'), nullable=True)
     transportadora = db.relationship('Transportadora', backref='cotacoes', lazy=True)
+
+class Anexo(db.Model):
+    __tablename__ = 'anexos'
+    id = db.Column(db.Integer, primary_key=True)
+    tipo_documento = db.Column(db.String(50), nullable=False)  # Ex: Nota Fiscal, CTe, Outros
+    nome_arquivo = db.Column(db.String(255), nullable=False)
+    caminho_arquivo = db.Column(db.String(255), nullable=False)
+    data_upload = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    pedido_id = db.Column(db.Integer, db.ForeignKey('pedidos.id'), nullable=False)
 
 # Alias de compatibilidade
 Cotacao = CotacaoFrete
