@@ -222,6 +222,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                
+                <!-- AVISO DE COTAÇÃO ENCERRADA -->
+                <div id="avisoCotacaoEncerrada" class="alert alert-success d-none mb-3" role="alert">
+                    <i class="fa-solid fa-circle-check me-2"></i>
+                    <strong>Cotação Definida!</strong> A cotação vencedora para este pedido já foi selecionada. O lançamento de novas cotações está bloqueado.
+                </div>
+
+                <!-- FORMULÁRIO DE LANÇAMENTO -->
                 <form id="formNovaCotacao" method="POST" action="" class="row g-2 mb-4 p-3 border rounded bg-light">
                     <div class="col-md-5">
                         <label class="form-label small fw-bold">Transportadora</label>
@@ -247,13 +255,13 @@
 
                 <h6 class="fw-bold mb-2">Cotações Lançadas:</h6>
                 <div class="table-responsive">
-                    <table class="table table-sm table-striped align-middle" id="tabelaCotacoes">
+                    <table class="table table-sm align-middle" id="tabelaCotacoes">
                         <thead class="table-dark">
                             <tr>
                                 <th>Transportadora</th>
                                 <th>Valor Frete</th>
                                 <th>Prazo (Dias)</th>
-                                <th>Status</th>
+                                <th class="text-end">Status / Ação</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -323,24 +331,120 @@ function abrirModalCotacao(pedidoId, numeroPedido) {
     fetch('/pedidos/' + pedidoId + '/cotacoes')
         .then(response => response.json())
         .then(data => {
+            const formNovaCotacao = document.getElementById('formNovaCotacao');
+            const avisoCotacaoEncerrada = document.getElementById('avisoCotacaoEncerrada');
             const tbody = document.querySelector('#tabelaCotacoes tbody');
             tbody.innerHTML = '';
-            if(data.length === 0) {
+
+            const cotacoesList = data.cotacoes || (Array.isArray(data) ? data : []);
+            const encerradas = data.cotacoes_encerradas || false;
+
+            if (encerradas) {
+                formNovaCotacao.classList.add('d-none');
+                avisoCotacaoEncerrada.classList.remove('d-none');
+            } else {
+                formNovaCotacao.classList.remove('d-none');
+                avisoCotacaoEncerrada.classList.add('d-none');
+            }
+
+            if (cotacoesList.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Nenhuma cotação registrada.</td></tr>';
             } else {
-                data.forEach(c => {
+                cotacoesList.forEach(c => {
+                    let acaoHtml = '';
+                    let linhaClasse = '';
+
+                    if (c.aprovada) {
+                        acaoHtml = `
+                            <div class="d-flex align-items-center justify-content-end gap-2">
+                                <span class="badge bg-success px-2 py-1"><i class="fa-solid fa-trophy me-1"></i>Vencedora</span>
+                                <button class="btn btn-xs btn-outline-warning py-0 px-2" style="font-size: 0.75rem;" onclick="reverterVencedora(${c.id})" title="Desfazer escolha e retornar pedido para 'Em Cotação'">
+                                    <i class="fa-solid fa-undo me-1"></i> Reverter
+                                </button>
+                            </div>
+                        `;
+                        linhaClasse = 'table-success fw-bold';
+                    } else if (!encerradas) {
+                        acaoHtml = `
+                            <button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size: 0.75rem;" onclick="selecionarVencedora(${c.id})">
+                                <i class="fa-solid fa-check me-1"></i> Selecionar Vencedora
+                            </button>
+                        `;
+                    } else {
+                        acaoHtml = `<span class="badge bg-secondary">Não Selecionada</span>`;
+                    }
+
                     tbody.innerHTML += `
-                        <tr>
+                        <tr class="${linhaClasse}">
                             <td>${c.transportadora_nome}</td>
-                            <td>R$ ${c.valor_frete.toFixed(2)}</td>
+                            <td class="text-primary">R$ ${parseFloat(c.valor_frete).toFixed(2)}</td>
                             <td>${c.prazo_dias} dias</td>
-                            <td>${c.aprovada ? '<span class="badge bg-success">Aprovada</span>' : '<span class="badge bg-secondary">Pendente</span>'}</td>
+                            <td class="text-end">${acaoHtml}</td>
                         </tr>
                     `;
                 });
             }
             new bootstrap.Modal(document.getElementById('modalCotacao')).show();
-        });
+        })
+        .catch(err => console.error('Erro ao buscar cotações:', err));
+}
+
+function selecionarVencedora(cotacaoId) {
+    if (!confirm('Deseja selecionar esta cotação como vencedora? O pedido será movido para "Aguardando Coleta".')) {
+        return;
+    }
+
+    fetch('/pedidos/cotacoes/' + cotacaoId + '/selecionar_vencedora', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.sucesso) {
+            const modalEl = document.getElementById('modalCotacao');
+            const instance = bootstrap.Modal.getInstance(modalEl);
+            if (instance) instance.hide();
+            
+            if (typeof carregarTela === 'function') {
+                carregarTela('/kanban');
+            } else {
+                window.location.reload();
+            }
+        }
+    })
+    .catch(err => console.error('Erro ao selecionar cotação vencedora:', err));
+}
+
+function reverterVencedora(cotacaoId) {
+    if (!confirm('Deseja reverter a escolha desta cotação? O pedido retornará para o status "Em Cotação".')) {
+        return;
+    }
+
+    fetch('/pedidos/cotacoes/' + cotacaoId + '/reverter_vencedora', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.sucesso) {
+            const modalEl = document.getElementById('modalCotacao');
+            const instance = bootstrap.Modal.getInstance(modalEl);
+            if (instance) instance.hide();
+            
+            if (typeof carregarTela === 'function') {
+                carregarTela('/kanban');
+            } else {
+                window.location.reload();
+            }
+        }
+    })
+    .catch(err => console.error('Erro ao reverter cotação vencedora:', err));
 }
 
 function abrirModalAnexos(pedidoId, numeroPedido) {
@@ -352,7 +456,7 @@ function abrirModalAnexos(pedidoId, numeroPedido) {
         .then(data => {
             const tbody = document.querySelector('#tabelaAnexos tbody');
             tbody.innerHTML = '';
-            if(data.length === 0) {
+            if (data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Nenhum anexo encontrado.</td></tr>';
             } else {
                 data.forEach(a => {
@@ -360,10 +464,10 @@ function abrirModalAnexos(pedidoId, numeroPedido) {
                         <tr>
                             <td><span class="badge bg-info text-dark">${a.tipo_documento}</span></td>
                             <td>${a.nome_arquivo}</td>
-                            <td>${a.data_upload}</td>
+                            <td>${a.data_upload || '-'}</td>
                             <td>
                                 <a href="/pedidos/uploads/${a.nome_arquivo}" target="_blank" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;">
-                                    <i class="fa-solid fa-eye"></i> Visualizar
+                                    <i class="fa-solid fa-eye me-1"></i> Visualizar
                                 </a>
                             </td>
                         </tr>
@@ -371,6 +475,7 @@ function abrirModalAnexos(pedidoId, numeroPedido) {
                 });
             }
             new bootstrap.Modal(document.getElementById('modalAnexos')).show();
-        });
+        })
+        .catch(err => console.error('Erro ao buscar anexos:', err));
 }
 </script>

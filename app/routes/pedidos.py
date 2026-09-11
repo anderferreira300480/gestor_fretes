@@ -56,7 +56,6 @@ def novo_pedido():
         empresa_id = request.form.get('empresa_id')
         fornecedor_id = request.form.get('fornecedor_id')
         
-        # Leitura flexível dos parâmetros enviando tanto o formato 'numero_pedido' quanto 'numero_pedido_compra'
         numero_pedido_compra = request.form.get('numero_pedido_compra') or request.form.get('numero_pedido')
         valor_mercadoria = request.form.get('valor_mercadoria') or request.form.get('valor_carga') or 0.0
 
@@ -82,31 +81,44 @@ def novo_pedido():
     return render_template('base.html', empresas=empresas, fornecedores=fornecedores, tela_ativa='novo_pedido')
 
 
-# Rota explícita /salvar para compatibilidade com chamadas POST diretas
 @pedidos_bp.route('/salvar', methods=['POST'])
 def salvar_pedido():
     return novo_pedido()
 
 
-# 1. Listar cotações em JSON para a Modal ao clicar no Card
+# 1. Listar cotações em JSON para a Modal ao clicar no Card (inclui o status do pedido para desabilitar o form)
 @pedidos_bp.route('/<int:pedido_id>/cotacoes', methods=['GET'])
 def listar_cotacoes(pedido_id):
+    pedido = Pedido.query.get_or_404(pedido_id)
     cotacoes = CotacaoFrete.query.filter_by(pedido_id=pedido_id).all()
-    resultado = []
+    
+    resultado_cotacoes = []
     for c in cotacoes:
-        resultado.append({
+        resultado_cotacoes.append({
             'id': c.id,
             'transportadora_nome': c.transportadora.razao_social if c.transportadora else 'Não Informado',
             'valor_frete': c.valor_frete,
             'prazo_dias': c.prazo_dias or 0,
             'aprovada': c.aprovada
         })
-    return jsonify(resultado)
+
+    return jsonify({
+        'pedido_id': pedido.id,
+        'pedido_status': pedido.status,
+        'cotacoes_encerradas': pedido.status != 'em_cotacao',
+        'cotacoes': resultado_cotacoes
+    })
 
 
-# 2. Incluir Cotação no Pedido
+# 2. Incluir Cotação no Pedido (com trava se o pedido já saiu da fase 'em_cotacao')
 @pedidos_bp.route('/<int:pedido_id>/incluir_cotacao', methods=['POST'])
 def incluir_cotacao(pedido_id):
+    pedido = Pedido.query.get_or_404(pedido_id)
+    
+    if pedido.status != 'em_cotacao':
+        flash('Não é possível adicionar novas cotações para este pedido pois a cotação já foi encerrada.', 'warning')
+        return redirect(url_for('main.index'))
+
     transportadora_id = request.form.get('transportadora_id')
     valor_frete = request.form.get('valor_frete')
     prazo_dias = request.form.get('prazo_dias')
@@ -115,7 +127,8 @@ def incluir_cotacao(pedido_id):
         pedido_id=pedido_id,
         transportadora_id=transportadora_id if transportadora_id else None,
         valor_frete=float(valor_frete),
-        prazo_dias=int(prazo_dias) if prazo_dias else None
+        prazo_dias=int(prazo_dias) if prazo_dias else None,
+        aprovada=False
     )
     db.session.add(nova_cotacao)
     db.session.commit()
@@ -124,7 +137,52 @@ def incluir_cotacao(pedido_id):
     return redirect(url_for('main.index'))
 
 
-# 3. Gerenciar Anexos (Upload e Consulta em JSON)
+# 3. Selecionar Cotação Vencedora e Atualizar Status do Pedido para 'aguardando_coleta'
+@pedidos_bp.route('/cotacoes/<int:cotacao_id>/selecionar_vencedora', methods=['POST'])
+def selecionar_vencedora(cotacao_id):
+    cotacao = CotacaoFrete.query.get_or_404(cotacao_id)
+    pedido = Pedido.query.get_or_404(cotacao.pedido_id)
+
+    # Desmarca qualquer outra cotação vinculada a este pedido
+    CotacaoFrete.query.filter_by(pedido_id=pedido.id).update({'aprovada': False})
+
+    # Define esta cotação como aprovada/vencedora
+    cotacao.aprovada = True
+
+    # Move o card no Kanban alterando o status do pedido para 'aguardando_coleta'
+    pedido.status = 'aguardando_coleta'
+
+    db.session.commit()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+        return jsonify({'sucesso': True, 'mensagem': 'Cotação definida como vencedora com sucesso!'})
+
+    flash('Cotação vencedora selecionada! Pedido movido para Aguardando Coleta.', 'success')
+    return redirect(url_for('main.index'))
+
+
+# 4. Reverter Cotação Vencedora e Retornar Status do Pedido para 'em_cotacao'
+@pedidos_bp.route('/cotacoes/<int:cotacao_id>/reverter_vencedora', methods=['POST'])
+def reverter_vencedora(cotacao_id):
+    cotacao = CotacaoFrete.query.get_or_404(cotacao_id)
+    pedido = Pedido.query.get_or_404(cotacao.pedido_id)
+
+    # Desmarca todas as cotações deste pedido como aprovadas
+    CotacaoFrete.query.filter_by(pedido_id=pedido.id).update({'aprovada': False})
+
+    # Retorna o status do pedido para 'em_cotacao'
+    pedido.status = 'em_cotacao'
+
+    db.session.commit()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+        return jsonify({'sucesso': True, 'mensagem': 'Seleção revertida. O pedido retornou para Em Cotação.'})
+
+    flash('Seleção de cotação revertida! Pedido retornou para Em Cotação.', 'info')
+    return redirect(url_for('main.index'))
+
+
+# 5. Gerenciar Anexos (Upload e Consulta em JSON)
 @pedidos_bp.route('/<int:pedido_id>/anexos', methods=['GET', 'POST'])
 def gerenciar_anexos(pedido_id):
     if request.method == 'POST':
@@ -156,7 +214,6 @@ def gerenciar_anexos(pedido_id):
 
         return redirect(url_for('main.index'))
 
-    # Retorna lista de anexos em JSON
     anexos = Anexo.query.filter_by(pedido_id=pedido_id).all()
     return jsonify([{
         'id': a.id,
@@ -166,7 +223,7 @@ def gerenciar_anexos(pedido_id):
     } for a in anexos])
 
 
-# 4. Download / Exibição de Anexos
+# 6. Download / Exibição de Anexos
 @pedidos_bp.route('/uploads/<filename>')
 def download_anexo(filename):
     upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
