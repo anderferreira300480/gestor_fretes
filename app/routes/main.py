@@ -1,5 +1,7 @@
 # app/routes/main.py
 from flask import Blueprint, render_template, request
+from datetime import date
+from app.database import db
 from app.models import Pedido, Empresa, Fornecedor, Transportadora
 
 main_bp = Blueprint('main', __name__)
@@ -8,6 +10,16 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/kanban')
 def index():
     empresa_id = request.args.get('empresa_id', type=int)
+
+    pedidos_para_atualizar = Pedido.query.filter(
+        Pedido.status == 'aguardando_coleta',
+        Pedido.data_coleta.isnot(None),
+        Pedido.data_coleta <= date.today()
+    ).all()
+    if pedidos_para_atualizar:
+        for pedido in pedidos_para_atualizar:
+            pedido.status = 'em_transito'
+        db.session.commit()
     
     # Consulta de pedidos (geral ou filtrado por empresa)
     query = Pedido.query

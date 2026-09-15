@@ -1,6 +1,20 @@
 # app/__init__.py
 from flask import Flask
 from app.database import db
+from sqlalchemy import text
+
+
+def _atualizar_schema():
+    colunas_pedidos = {
+        coluna['name']
+        for coluna in db.session.execute(text('PRAGMA table_info(pedidos)')).mappings()
+    }
+
+    for coluna in ('data_coleta', 'data_entrega'):
+        if coluna not in colunas_pedidos:
+            db.session.execute(text(f'ALTER TABLE pedidos ADD COLUMN {coluna} DATE'))
+
+    db.session.commit()
 
 def create_app():
     app = Flask(__name__)
@@ -26,5 +40,6 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        _atualizar_schema()
 
     return app

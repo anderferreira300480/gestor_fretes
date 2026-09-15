@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, current_app
 from werkzeug.utils import secure_filename
 from app.database import db
@@ -105,6 +106,8 @@ def listar_cotacoes(pedido_id):
     return jsonify({
         'pedido_id': pedido.id,
         'pedido_status': pedido.status,
+        'data_coleta': pedido.data_coleta.isoformat() if pedido.data_coleta else '',
+        'data_entrega': pedido.data_entrega.isoformat() if pedido.data_entrega else '',
         'cotacoes_encerradas': pedido.status != 'em_cotacao',
         'cotacoes': resultado_cotacoes
     })
@@ -161,6 +164,41 @@ def selecionar_vencedora(cotacao_id):
     return redirect(url_for('main.index'))
 
 
+@pedidos_bp.route('/<int:pedido_id>/datas', methods=['POST'])
+def salvar_datas_pedido(pedido_id):
+    pedido = Pedido.query.get_or_404(pedido_id)
+    cotacao_vencedora = CotacaoFrete.query.filter_by(
+        pedido_id=pedido.id,
+        aprovada=True
+    ).first()
+
+    if not cotacao_vencedora:
+        mensagem = 'Selecione uma cotação vencedora antes de informar as datas.'
+        return jsonify({'sucesso': False, 'mensagem': mensagem}), 400
+
+    dados = request.get_json(silent=True) or request.form
+    data_coleta_texto = dados.get('data_coleta')
+    data_entrega_texto = dados.get('data_entrega')
+
+    if not data_coleta_texto or not data_entrega_texto:
+        return jsonify({'sucesso': False, 'mensagem': 'Informe as datas de coleta e de entrega.'}), 400
+
+    try:
+        data_coleta = datetime.strptime(data_coleta_texto, '%Y-%m-%d').date()
+        data_entrega = datetime.strptime(data_entrega_texto, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'sucesso': False, 'mensagem': 'Informe datas válidas para coleta e entrega.'}), 400
+
+    if data_entrega < data_coleta:
+        return jsonify({'sucesso': False, 'mensagem': 'A data de entrega não pode ser anterior à data de coleta.'}), 400
+
+    pedido.data_coleta = data_coleta
+    pedido.data_entrega = data_entrega
+    db.session.commit()
+
+    return jsonify({'sucesso': True, 'mensagem': 'Datas salvas com sucesso.'})
+
+
 # 4. Reverter Cotação Vencedora e Retornar Status do Pedido para 'em_cotacao'
 @pedidos_bp.route('/cotacoes/<int:cotacao_id>/reverter_vencedora', methods=['POST'])
 def reverter_vencedora(cotacao_id):
@@ -172,6 +210,8 @@ def reverter_vencedora(cotacao_id):
 
     # Retorna o status do pedido para 'em_cotacao'
     pedido.status = 'em_cotacao'
+    pedido.data_coleta = None
+    pedido.data_entrega = None
 
     db.session.commit()
 

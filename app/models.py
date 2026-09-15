@@ -57,6 +57,8 @@ class Pedido(db.Model):
     valor_mercadoria = db.Column(db.Float, default=0.0)
     status = db.Column(db.String(50), default='em_cotacao')
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
+    data_coleta = db.Column(db.Date, nullable=True)
+    data_entrega = db.Column(db.Date, nullable=True)
     
     empresa_id = db.Column(db.Integer, db.ForeignKey('empresas.id'), nullable=True)
     fornecedor_id = db.Column(db.Integer, db.ForeignKey('fornecedores.id'), nullable=True)

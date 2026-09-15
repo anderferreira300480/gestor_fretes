@@ -104,6 +104,8 @@
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
                     <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    <small class="d-block text-secondary"><b>Coleta:</b> {{ p.data_coleta.strftime('%d/%m/%Y') if p.data_coleta else 'Não informada' }}</small>
+                    <small class="d-block text-secondary"><b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}</small>
                     
                     <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                         <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
@@ -134,6 +136,8 @@
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
                     <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    <small class="d-block text-secondary"><b>Coleta:</b> {{ p.data_coleta.strftime('%d/%m/%Y') if p.data_coleta else 'Não informada' }}</small>
+                    <small class="d-block text-secondary"><b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}</small>
                     
                     <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                         <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
@@ -214,8 +218,61 @@
 </div>
 
 <!-- MODAL COTAÇÕES -->
+<style>
+    #modalCotacao .modal-body {
+        overflow-x: hidden;
+    }
+
+    #modalCotacao .cotacoes-tabela-container {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    #modalCotacao #tabelaCotacoes {
+        width: 100%;
+        table-layout: fixed;
+        margin-bottom: 0;
+    }
+
+    #modalCotacao #tabelaCotacoes th,
+    #modalCotacao #tabelaCotacoes td {
+        white-space: nowrap;
+        vertical-align: middle;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #modalCotacao #tabelaCotacoes .coluna-transportadora {
+        width: 21%;
+    }
+
+    #modalCotacao #tabelaCotacoes .coluna-valor {
+        width: 12%;
+    }
+
+    #modalCotacao #tabelaCotacoes .coluna-prazo {
+        width: 10%;
+    }
+
+    #modalCotacao #tabelaCotacoes .coluna-data {
+        width: 15%;
+    }
+
+    #modalCotacao #tabelaCotacoes .coluna-acoes {
+        width: 27%;
+    }
+
+    #modalCotacao #tabelaCotacoes .coluna-acoes .d-flex {
+        flex-wrap: nowrap;
+        gap: 0.25rem !important;
+    }
+
+    #modalCotacao #tabelaCotacoes .coluna-acoes .btn {
+        font-size: 0.68rem !important;
+    }
+</style>
 <div class="modal fade" id="modalCotacao" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h5 class="modal-title fw-bold text-dark">Lançar Cotação - Pedido <span id="modalCotacaoPedidoNum"></span></h5>
@@ -254,14 +311,16 @@
                 </form>
 
                 <h6 class="fw-bold mb-2">Cotações Lançadas:</h6>
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle" id="tabelaCotacoes">
+                <div class="cotacoes-tabela-container">
+                    <table class="table table-sm align-middle text-nowrap" id="tabelaCotacoes">
                         <thead class="table-dark">
                             <tr>
-                                <th>Transportadora</th>
-                                <th>Valor Frete</th>
-                                <th>Prazo (Dias)</th>
-                                <th class="text-end">Status / Ação</th>
+                                <th class="coluna-transportadora">Transportadora</th>
+                                <th class="coluna-valor">Valor Frete</th>
+                                <th class="coluna-prazo">Prazo (Dias)</th>
+                                <th class="colunas-datas-cotacao d-none coluna-data">Data da Coleta</th>
+                                <th class="colunas-datas-cotacao d-none coluna-data">Data da Entrega</th>
+                                <th class="text-end coluna-acoes">Status / Ação</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -339,25 +398,44 @@ function abrirModalCotacao(pedidoId, numeroPedido) {
             const cotacoesList = data.cotacoes || (Array.isArray(data) ? data : []);
             const encerradas = data.cotacoes_encerradas || false;
 
+            cotacoesList.sort((cotacaoAtual, proximaCotacao) => {
+                return Number(proximaCotacao.aprovada) - Number(cotacaoAtual.aprovada);
+            });
+
             if (encerradas) {
                 formNovaCotacao.classList.add('d-none');
                 avisoCotacaoEncerrada.classList.remove('d-none');
+                document.querySelectorAll('.colunas-datas-cotacao').forEach(elemento => {
+                    elemento.classList.remove('d-none');
+                });
             } else {
                 formNovaCotacao.classList.remove('d-none');
                 avisoCotacaoEncerrada.classList.add('d-none');
+                document.querySelectorAll('.colunas-datas-cotacao').forEach(elemento => {
+                    elemento.classList.add('d-none');
+                });
             }
 
             if (cotacoesList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Nenhuma cotação registrada.</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="${encerradas ? '6' : '4'}" class="text-center text-muted">Nenhuma cotação registrada.</td></tr>`;
             } else {
                 cotacoesList.forEach(c => {
                     let acaoHtml = '';
                     let linhaClasse = '';
+                    const datasSalvas = Boolean(data.data_coleta && data.data_entrega);
 
                     if (c.aprovada) {
+                        const acaoDatas = datasSalvas
+                            ? `<button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="editarDatas(${c.id}, ${pedidoId})">
+                                <i class="fa-solid fa-pen me-1"></i> Editar Datas
+                            </button>`
+                            : `<button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size: 0.75rem;" onclick="salvarDatas(${pedidoId})">
+                                <i class="fa-solid fa-calendar-check me-1"></i> Salvar Datas
+                            </button>`;
                         acaoHtml = `
                             <div class="d-flex align-items-center justify-content-end gap-2">
                                 <span class="badge bg-success px-2 py-1"><i class="fa-solid fa-trophy me-1"></i>Vencedora</span>
+                                ${encerradas ? acaoDatas : ''}
                                 <button class="btn btn-xs btn-outline-warning py-0 px-2" style="font-size: 0.75rem;" onclick="reverterVencedora(${c.id})" title="Desfazer escolha e retornar pedido para 'Em Cotação'">
                                     <i class="fa-solid fa-undo me-1"></i> Reverter
                                 </button>
@@ -376,10 +454,16 @@ function abrirModalCotacao(pedidoId, numeroPedido) {
 
                     tbody.innerHTML += `
                         <tr class="${linhaClasse}">
-                            <td>${c.transportadora_nome}</td>
-                            <td class="text-primary">R$ ${parseFloat(c.valor_frete).toFixed(2)}</td>
-                            <td>${c.prazo_dias} dias</td>
-                            <td class="text-end">${acaoHtml}</td>
+                            <td class="coluna-transportadora" title="${c.transportadora_nome}">${c.transportadora_nome}</td>
+                            <td class="text-primary coluna-valor">R$ ${parseFloat(c.valor_frete).toFixed(2)}</td>
+                            <td class="coluna-prazo">${c.prazo_dias} dias</td>
+                            <td class="celulas-datas-cotacao${encerradas ? '' : ' d-none'}">
+                                ${c.aprovada ? `<input type="date" class="form-control form-control-sm" id="dataColeta-${c.id}" value="${data.data_coleta || ''}" aria-label="Data da coleta" ${datasSalvas ? 'disabled' : ''}>` : ''}
+                            </td>
+                            <td class="celulas-datas-cotacao${encerradas ? '' : ' d-none'}">
+                                ${c.aprovada ? `<input type="date" class="form-control form-control-sm" id="dataEntrega-${c.id}" value="${data.data_entrega || ''}" aria-label="Data da entrega" ${datasSalvas ? 'disabled' : ''}>` : ''}
+                            </td>
+                            <td class="text-end coluna-acoes">${acaoHtml}</td>
                         </tr>
                     `;
                 });
@@ -413,9 +497,65 @@ function selecionarVencedora(cotacaoId) {
             } else {
                 window.location.reload();
             }
+        } else {
+            alert(data.mensagem || 'Não foi possível selecionar a cotação.');
         }
     })
     .catch(err => console.error('Erro ao selecionar cotação vencedora:', err));
+}
+
+function salvarDatas(pedidoId) {
+    const dataColeta = document.querySelector('input[id^="dataColeta-"]');
+    const dataEntrega = document.querySelector('input[id^="dataEntrega-"]');
+
+    if (!dataColeta || !dataEntrega || !dataColeta.value || !dataEntrega.value) {
+        alert('Informe as datas de coleta e de entrega.');
+        return;
+    }
+
+    if (dataEntrega.value < dataColeta.value) {
+        alert('A data de entrega não pode ser anterior à data de coleta.');
+        return;
+    }
+
+    fetch('/pedidos/' + pedidoId + '/datas', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            data_coleta: dataColeta.value,
+            data_entrega: dataEntrega.value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.sucesso) {
+            const modalEl = document.getElementById('modalCotacao');
+            const instance = bootstrap.Modal.getInstance(modalEl);
+            if (instance) instance.hide();
+            carregarTela('/kanban');
+        } else {
+            alert(data.mensagem || 'Não foi possível salvar as datas.');
+        }
+    })
+    .catch(err => console.error('Erro ao salvar datas:', err));
+}
+
+function editarDatas(cotacaoId, pedidoId) {
+    const dataColeta = document.getElementById('dataColeta-' + cotacaoId);
+    const dataEntrega = document.getElementById('dataEntrega-' + cotacaoId);
+
+    if (dataColeta && dataEntrega) {
+        dataColeta.disabled = false;
+        dataEntrega.disabled = false;
+    }
+
+    const botaoEditar = event.currentTarget;
+    botaoEditar.outerHTML = `<button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size: 0.75rem;" onclick="salvarDatas(${pedidoId})">
+        <i class="fa-solid fa-calendar-check me-1"></i> Salvar Datas
+    </button>`;
 }
 
 function reverterVencedora(cotacaoId) {
@@ -478,4 +618,18 @@ function abrirModalAnexos(pedidoId, numeroPedido) {
         })
         .catch(err => console.error('Erro ao buscar anexos:', err));
 }
+
+if (window.kanbanRefreshTimeout) {
+    clearTimeout(window.kanbanRefreshTimeout);
+}
+
+const proximaAtualizacaoKanban = new Date();
+proximaAtualizacaoKanban.setDate(proximaAtualizacaoKanban.getDate() + 1);
+proximaAtualizacaoKanban.setHours(0, 0, 5, 0);
+
+window.kanbanRefreshTimeout = setTimeout(() => {
+    if (document.getElementById('modalCotacao')) {
+        carregarTela('/kanban');
+    }
+}, proximaAtualizacaoKanban.getTime() - Date.now());
 </script>
