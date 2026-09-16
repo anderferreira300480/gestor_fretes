@@ -60,11 +60,21 @@ def novo_pedido():
         numero_pedido_compra = request.form.get('numero_pedido_compra') or request.form.get('numero_pedido')
         valor_mercadoria = request.form.get('valor_mercadoria') or request.form.get('valor_carga') or 0.0
 
+        def converter_float(nome):
+            valor = request.form.get(nome)
+            return float(valor) if valor else None
+
         novo = Pedido(
             empresa_id=empresa_id if empresa_id else None,
             fornecedor_id=fornecedor_id if fornecedor_id else None,
             numero_pedido_compra=numero_pedido_compra,
             valor_mercadoria=float(valor_mercadoria) if valor_mercadoria else 0.0,
+            volumes=int(request.form['volumes']) if request.form.get('volumes') else None,
+            peso_kg=converter_float('peso_kg'),
+            dim_altura=converter_float('dim_altura'),
+            dim_largura=converter_float('dim_largura'),
+            dim_comprimento=converter_float('dim_comprimento'),
+            observacoes=request.form.get('observacoes') or None,
             status='em_cotacao'
         )
         db.session.add(novo)
@@ -87,6 +97,19 @@ def salvar_pedido():
     return novo_pedido()
 
 
+@pedidos_bp.route('/<int:pedido_id>/excluir', methods=['POST'])
+def excluir_pedido(pedido_id):
+    pedido = Pedido.query.get_or_404(pedido_id)
+    db.session.delete(pedido)
+    db.session.commit()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+        return jsonify({'sucesso': True, 'mensagem': 'Pedido excluído com sucesso.'})
+
+    flash('Pedido excluído com sucesso.', 'success')
+    return redirect(url_for('main.index'))
+
+
 # 1. Listar cotações em JSON para a Modal ao clicar no Card (inclui o status do pedido para desabilitar o form)
 @pedidos_bp.route('/<int:pedido_id>/cotacoes', methods=['GET'])
 def listar_cotacoes(pedido_id):
@@ -100,12 +123,29 @@ def listar_cotacoes(pedido_id):
             'transportadora_nome': c.transportadora.razao_social if c.transportadora else 'Não Informado',
             'valor_frete': c.valor_frete,
             'prazo_dias': c.prazo_dias or 0,
-            'aprovada': c.aprovada
+            'aprovada': c.aprovada,
+            'observacao': c.observacao or ''
         })
 
     return jsonify({
         'pedido_id': pedido.id,
+        'numero_pedido_compra': pedido.numero_pedido_compra,
+        'valor_mercadoria': pedido.valor_mercadoria or 0,
+        'volumes': pedido.volumes,
+        'peso_kg': pedido.peso_kg,
+        'dim_altura': pedido.dim_altura,
+        'dim_largura': pedido.dim_largura,
+        'dim_comprimento': pedido.dim_comprimento,
+        'observacoes': pedido.observacoes or '',
         'pedido_status': pedido.status,
+        'empresa': {
+            'razao_social': pedido.empresa.razao_social if pedido.empresa else '',
+            'cnpj': pedido.empresa.cnpj if pedido.empresa else ''
+        },
+        'fornecedor': {
+            'razao_social': pedido.fornecedor.razao_social if pedido.fornecedor else '',
+            'cnpj': pedido.fornecedor.cnpj if pedido.fornecedor else ''
+        },
         'data_coleta': pedido.data_coleta.isoformat() if pedido.data_coleta else '',
         'data_entrega': pedido.data_entrega.isoformat() if pedido.data_entrega else '',
         'cotacoes_encerradas': pedido.status != 'em_cotacao',
@@ -136,8 +176,26 @@ def incluir_cotacao(pedido_id):
     db.session.add(nova_cotacao)
     db.session.commit()
 
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'sucesso': True})
+
     flash('Cotação lançada com sucesso!', 'success')
     return redirect(url_for('main.index'))
+
+
+@pedidos_bp.route('/cotacoes/<int:cotacao_id>/excluir', methods=['POST'])
+def excluir_cotacao(cotacao_id):
+    cotacao = CotacaoFrete.query.get_or_404(cotacao_id)
+    pedido = Pedido.query.get_or_404(cotacao.pedido_id)
+
+    if pedido.status != 'em_cotacao':
+        mensagem = 'Só é possível excluir cotações enquanto o pedido estiver em cotação.'
+        return jsonify({'sucesso': False, 'mensagem': mensagem}), 400
+
+    db.session.delete(cotacao)
+    db.session.commit()
+
+    return jsonify({'sucesso': True, 'mensagem': 'Cotação excluída com sucesso.'})
 
 
 # 3. Selecionar Cotação Vencedora e Atualizar Status do Pedido para 'aguardando_coleta'
@@ -146,11 +204,26 @@ def selecionar_vencedora(cotacao_id):
     cotacao = CotacaoFrete.query.get_or_404(cotacao_id)
     pedido = Pedido.query.get_or_404(cotacao.pedido_id)
 
+    dados = request.get_json(silent=True) or request.form
+    justificativa = (dados.get('justificativa') or '').strip()
+    menor_valor = db.session.query(db.func.min(CotacaoFrete.valor_frete)).filter_by(
+        pedido_id=pedido.id
+    ).scalar()
+
+    if menor_valor is not None and cotacao.valor_frete > menor_valor and not justificativa:
+        mensagem = 'É necessário informar uma justificativa para escolher uma cotação mais cara.'
+        return jsonify({
+            'sucesso': False,
+            'solicitar_justificativa': True,
+            'mensagem': mensagem
+        }), 400
+
     # Desmarca qualquer outra cotação vinculada a este pedido
     CotacaoFrete.query.filter_by(pedido_id=pedido.id).update({'aprovada': False})
 
     # Define esta cotação como aprovada/vencedora
     cotacao.aprovada = True
+    cotacao.observacao = justificativa or None
 
     # Move o card no Kanban alterando o status do pedido para 'aguardando_coleta'
     pedido.status = 'aguardando_coleta'

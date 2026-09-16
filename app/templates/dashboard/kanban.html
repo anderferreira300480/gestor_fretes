@@ -69,11 +69,12 @@
                 {% for p in kanban.em_cotacao %}
                 <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
                     <small class="fw-bold text-dark d-block">
-                        CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
+                        CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
                     </small>
+                    <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
-                    <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
                     
                     <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                         <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
@@ -81,6 +82,9 @@
                         </button>
                         <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                             <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                        </button>
+                        <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </div>
@@ -99,11 +103,13 @@
                 {% for p in kanban.aguardando_coleta %}
                 <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
                     <small class="fw-bold text-dark d-block">
-                        CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
+                        CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
                     </small>
+                    <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
-                    <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    <small class="d-block text-secondary"><b>Status:</b> Aguardando coleta</small>
                     <small class="d-block text-secondary"><b>Coleta:</b> {{ p.data_coleta.strftime('%d/%m/%Y') if p.data_coleta else 'Não informada' }}</small>
                     <small class="d-block text-secondary"><b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}</small>
                     
@@ -113,6 +119,9 @@
                         </button>
                         <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                             <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                        </button>
+                        <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </div>
@@ -131,11 +140,12 @@
                 {% for p in kanban.em_transito %}
                 <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
                     <small class="fw-bold text-dark d-block">
-                        CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
+                        CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
                     </small>
+                    <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
-                    <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
                     <small class="d-block text-secondary"><b>Coleta:</b> {{ p.data_coleta.strftime('%d/%m/%Y') if p.data_coleta else 'Não informada' }}</small>
                     <small class="d-block text-secondary"><b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}</small>
                     
@@ -145,6 +155,9 @@
                         </button>
                         <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                             <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                        </button>
+                        <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </div>
@@ -164,11 +177,12 @@
                 <div class="card shadow-sm mb-2 p-2 border-0 bg-white position-relative">
                     <i class="fa-solid fa-circle-check text-success position-absolute top-0 end-0 m-2"></i>
                     <small class="fw-bold text-dark d-block me-3">
-                        CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
+                        CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
                     </small>
+                    <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
-                    <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
                     
                     <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                         <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
@@ -176,6 +190,9 @@
                         </button>
                         <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                             <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                        </button>
+                        <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </div>
@@ -195,11 +212,12 @@
                 <div class="card shadow-sm mb-2 p-2 border-0 bg-white position-relative">
                     <i class="fa-solid fa-circle-xmark text-danger position-absolute top-0 end-0 m-2"></i>
                     <small class="fw-bold text-dark d-block me-3">
-                        CNPJ: {{ p.empresa.razao_social if p.empresa else 'Unidade' }}
+                        CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
                     </small>
+                    <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
-                    <small class="d-block text-secondary"><b>Valor:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
                     
                     <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                         <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
@@ -207,6 +225,9 @@
                         </button>
                         <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                             <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                        </button>
+                        <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </div>
@@ -279,6 +300,28 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div id="resumoPedidoCotacao" class="row g-2 mb-3 p-3 border rounded bg-light small">
+                    <div class="col-md-4"><b>Empresa:</b> <span id="detalheEmpresa">-</span></div>
+                    <div class="col-md-4"><b>CNPJ Empresa:</b> <span id="detalheCnpjEmpresa">-</span></div>
+                    <div class="col-md-4"><b>Valor do Pedido:</b> R$ <span id="detalheValorMercadoria">0,00</span></div>
+                    <div class="col-md-4"><b>Fornecedor:</b> <span id="detalheFornecedor">-</span></div>
+                    <div class="col-md-4"><b>CNPJ Fornecedor:</b> <span id="detalheCnpjFornecedor">-</span></div>
+                    <div class="col-md-4"><b>Status:</b> <span id="detalheStatusPedido">-</span></div>
+                </div>
+                <div id="detalheCargaCotacao" class="row g-2 mb-3 p-3 border rounded small">
+                    <div class="col-12 fw-bold text-primary">Detalhes do Pedido e Carga</div>
+                    <div class="col-md-2"><b>Volumes:</b> <span id="detalheVolumes">-</span></div>
+                    <div class="col-md-2"><b>Peso total:</b> <span id="detalhePeso">-</span></div>
+                    <div class="col-md-2"><b>Altura:</b> <span id="detalheAltura">-</span></div>
+                    <div class="col-md-2"><b>Largura:</b> <span id="detalheLargura">-</span></div>
+                    <div class="col-md-2"><b>Comprimento:</b> <span id="detalheComprimento">-</span></div>
+                    <div class="col-md-2 d-flex align-items-center gap-2">
+                        <b>Observações:</b>
+                        <button type="button" id="botaoObservacoesPedido" class="btn btn-sm btn-outline-secondary py-0" onclick="abrirObservacoesPedido()" title="Ver observações do pedido">
+                            <i class="fa-solid fa-comment-dots"></i> Ver
+                        </button>
+                    </div>
+                </div>
                 
                 <!-- AVISO DE COTAÇÃO ENCERRADA -->
                 <div id="avisoCotacaoEncerrada" class="alert alert-success d-none mb-3" role="alert">
@@ -328,6 +371,20 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalObservacoesPedido" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-dark">Observações do Pedido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p id="textoObservacoesPedido" class="mb-0 text-break">Nenhuma observação informada.</p>
             </div>
         </div>
     </div>
@@ -383,20 +440,62 @@
 </div>
 
 <script>
+function excluirPedido(pedidoId, numeroPedido) {
+    if (!confirm(`Deseja excluir o pedido ${numeroPedido}? Esta ação removerá o pedido e suas cotações do banco de dados.`)) {
+        return;
+    }
+
+    fetch('/pedidos/' + pedidoId + '/excluir', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.sucesso) {
+            carregarTela('/kanban');
+        } else {
+            alert(data.mensagem || 'Não foi possível excluir o pedido.');
+        }
+    })
+    .catch(error => console.error('Erro ao excluir pedido:', error));
+}
+
 function abrirModalCotacao(pedidoId, numeroPedido) {
     document.getElementById('modalCotacaoPedidoNum').innerText = numeroPedido;
-    document.getElementById('formNovaCotacao').action = '/pedidos/' + pedidoId + '/incluir_cotacao';
+    const formNovaCotacao = document.getElementById('formNovaCotacao');
+    formNovaCotacao.action = '/pedidos/' + pedidoId + '/incluir_cotacao';
+    formNovaCotacao.dataset.pedidoId = pedidoId;
 
     fetch('/pedidos/' + pedidoId + '/cotacoes')
         .then(response => response.json())
         .then(data => {
-            const formNovaCotacao = document.getElementById('formNovaCotacao');
             const avisoCotacaoEncerrada = document.getElementById('avisoCotacaoEncerrada');
             const tbody = document.querySelector('#tabelaCotacoes tbody');
             tbody.innerHTML = '';
 
             const cotacoesList = data.cotacoes || (Array.isArray(data) ? data : []);
             const encerradas = data.cotacoes_encerradas || false;
+            window.justificativasCotacoes = {};
+
+            document.getElementById('detalheEmpresa').innerText = data.empresa?.razao_social || 'Não informada';
+            document.getElementById('detalheCnpjEmpresa').innerText = data.empresa?.cnpj || 'Não informado';
+            document.getElementById('detalheFornecedor').innerText = data.fornecedor?.razao_social || 'Não informado';
+            document.getElementById('detalheCnpjFornecedor').innerText = data.fornecedor?.cnpj || 'Não informado';
+            document.getElementById('detalheValorMercadoria').innerText = Number(data.valor_mercadoria || 0).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            document.getElementById('detalheStatusPedido').innerText = formatarStatusPedido(data.pedido_status);
+            document.getElementById('detalheVolumes').innerText = data.volumes ?? 'Não informado';
+            document.getElementById('detalhePeso').innerText = data.peso_kg != null ? `${formatarNumero(data.peso_kg)} kg` : 'Não informado';
+            document.getElementById('detalheAltura').innerText = data.dim_altura != null ? `${formatarNumero(data.dim_altura)} m` : 'Não informada';
+            document.getElementById('detalheLargura').innerText = data.dim_largura != null ? `${formatarNumero(data.dim_largura)} m` : 'Não informada';
+            document.getElementById('detalheComprimento').innerText = data.dim_comprimento != null ? `${formatarNumero(data.dim_comprimento)} m` : 'Não informado';
+            document.getElementById('botaoObservacoesPedido').classList.toggle('d-none', !data.observacoes);
+            document.getElementById('textoObservacoesPedido').innerText = data.observacoes || 'Nenhuma observação informada.';
 
             cotacoesList.sort((cotacaoAtual, proximaCotacao) => {
                 return Number(proximaCotacao.aprovada) - Number(cotacaoAtual.aprovada);
@@ -424,6 +523,10 @@ function abrirModalCotacao(pedidoId, numeroPedido) {
                     let linhaClasse = '';
                     const datasSalvas = Boolean(data.data_coleta && data.data_entrega);
 
+                    if (c.observacao) {
+                        window.justificativasCotacoes[c.id] = c.observacao;
+                    }
+
                     if (c.aprovada) {
                         const acaoDatas = datasSalvas
                             ? `<button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="editarDatas(${c.id}, ${pedidoId})">
@@ -435,6 +538,9 @@ function abrirModalCotacao(pedidoId, numeroPedido) {
                         acaoHtml = `
                             <div class="d-flex align-items-center justify-content-end gap-2">
                                 <span class="badge bg-success px-2 py-1"><i class="fa-solid fa-trophy me-1"></i>Vencedora</span>
+                                ${c.observacao ? `<button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="mostrarJustificativa(${c.id})">
+                                    <i class="fa-solid fa-comment-dots me-1"></i> Ver justificativa
+                                </button>` : ''}
                                 ${encerradas ? acaoDatas : ''}
                                 <button class="btn btn-xs btn-outline-warning py-0 px-2" style="font-size: 0.75rem;" onclick="reverterVencedora(${c.id})" title="Desfazer escolha e retornar pedido para 'Em Cotação'">
                                     <i class="fa-solid fa-undo me-1"></i> Reverter
@@ -444,9 +550,14 @@ function abrirModalCotacao(pedidoId, numeroPedido) {
                         linhaClasse = 'table-success fw-bold';
                     } else if (!encerradas) {
                         acaoHtml = `
-                            <button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size: 0.75rem;" onclick="selecionarVencedora(${c.id})">
-                                <i class="fa-solid fa-check me-1"></i> Selecionar Vencedora
-                            </button>
+                            <div class="d-flex align-items-center justify-content-end gap-2">
+                                <button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size: 0.75rem;" onclick="selecionarVencedora(${c.id})">
+                                    <i class="fa-solid fa-check me-1"></i> Selecionar Vencedora
+                                </button>
+                                <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirCotacao(${c.id})" title="Excluir cotação">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
                         `;
                     } else {
                         acaoHtml = `<span class="badge bg-secondary">Não Selecionada</span>`;
@@ -468,12 +579,68 @@ function abrirModalCotacao(pedidoId, numeroPedido) {
                     `;
                 });
             }
-            new bootstrap.Modal(document.getElementById('modalCotacao')).show();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCotacao')).show();
         })
         .catch(err => console.error('Erro ao buscar cotações:', err));
 }
 
-function selecionarVencedora(cotacaoId) {
+function abrirObservacoesPedido() {
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalObservacoesPedido')).show();
+}
+
+function formatarData(dataIso) {
+    const partes = dataIso.split('-');
+    return partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : dataIso;
+}
+
+function formatarStatusPedido(status) {
+    const statusFormatado = {
+        em_cotacao: 'Em cotação',
+        aguardando_coleta: 'Aguardando coleta',
+        em_transito: 'Em trânsito',
+        entregue: 'Entregue',
+        ocorrencia: 'Ocorrência'
+    };
+    return statusFormatado[status] || status || '-';
+}
+
+function formatarNumero(valor) {
+    return Number(valor).toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function mostrarJustificativa(cotacaoId) {
+    alert(window.justificativasCotacoes?.[cotacaoId] || 'Nenhuma justificativa informada.');
+}
+
+function excluirCotacao(cotacaoId) {
+    if (!confirm('Deseja excluir esta cotação?')) {
+        return;
+    }
+
+    fetch('/pedidos/cotacoes/' + cotacaoId + '/excluir', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.sucesso) {
+            const pedidoId = document.getElementById('formNovaCotacao').dataset.pedidoId;
+            const numeroPedido = document.getElementById('modalCotacaoPedidoNum').innerText;
+            abrirModalCotacao(pedidoId, numeroPedido);
+        } else {
+            alert(data.mensagem || 'Não foi possível excluir a cotação.');
+        }
+    })
+    .catch(error => console.error('Erro ao excluir cotação:', error));
+}
+
+function selecionarVencedora(cotacaoId, justificativa = '') {
     if (!confirm('Deseja selecionar esta cotação como vencedora? O pedido será movido para "Aguardando Coleta".')) {
         return;
     }
@@ -483,7 +650,8 @@ function selecionarVencedora(cotacaoId) {
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ justificativa: justificativa })
     })
     .then(res => res.json())
     .then(data => {
@@ -497,12 +665,46 @@ function selecionarVencedora(cotacaoId) {
             } else {
                 window.location.reload();
             }
+        } else if (data.solicitar_justificativa) {
+            const texto = window.prompt('Esta cotação possui valor maior que a menor cotação. Informe a justificativa:');
+            if (texto === null) {
+                return;
+            }
+            if (!texto.trim()) {
+                alert('A justificativa é obrigatória para selecionar uma cotação mais cara.');
+                return;
+            }
+            selecionarVencedora(cotacaoId, texto.trim());
         } else {
             alert(data.mensagem || 'Não foi possível selecionar a cotação.');
         }
     })
     .catch(err => console.error('Erro ao selecionar cotação vencedora:', err));
 }
+
+document.getElementById('formNovaCotacao')?.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const pedidoId = form.dataset.pedidoId;
+    const numeroPedido = document.getElementById('modalCotacaoPedidoNum').innerText;
+
+    fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.sucesso) {
+            form.reset();
+            abrirModalCotacao(pedidoId, numeroPedido);
+        } else {
+            alert(data.mensagem || 'Não foi possível salvar a cotação.');
+        }
+    })
+    .catch(err => console.error('Erro ao salvar cotação:', err));
+});
 
 function salvarDatas(pedidoId) {
     const dataColeta = document.querySelector('input[id^="dataColeta-"]');

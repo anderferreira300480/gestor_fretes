@@ -14,6 +14,29 @@ def _atualizar_schema():
         if coluna not in colunas_pedidos:
             db.session.execute(text(f'ALTER TABLE pedidos ADD COLUMN {coluna} DATE'))
 
+    colunas_cotacoes = {
+        coluna['name']
+        for coluna in db.session.execute(text('PRAGMA table_info(cotacoes)')).mappings()
+    }
+    if 'observacao' not in colunas_cotacoes:
+        db.session.execute(text('ALTER TABLE cotacoes ADD COLUMN observacao TEXT'))
+
+    colunas_pedidos = {
+        coluna['name']
+        for coluna in db.session.execute(text('PRAGMA table_info(pedidos)')).mappings()
+    }
+    novos_campos_pedido = {
+        'volumes': 'INTEGER',
+        'peso_kg': 'FLOAT',
+        'dim_altura': 'FLOAT',
+        'dim_largura': 'FLOAT',
+        'dim_comprimento': 'FLOAT',
+        'observacoes': 'TEXT'
+    }
+    for coluna, tipo in novos_campos_pedido.items():
+        if coluna not in colunas_pedidos:
+            db.session.execute(text(f'ALTER TABLE pedidos ADD COLUMN {coluna} {tipo}'))
+
     db.session.commit()
 
 def create_app():
