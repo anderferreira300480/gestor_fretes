@@ -5,7 +5,7 @@
         </h4>
     </div>
     <div class="card-body p-4">
-        <form id="form-pedido-compra" class="ajax-form" action="/pedidos/salvar" method="POST">
+        <form id="form-pedido-compra" action="/pedidos/salvar" method="POST">
 
             <!-- 1. DETALHES DO PEDIDO & CARGA -->
             <div class="mb-4">
@@ -177,6 +177,30 @@
 
 <script>
     (function() {
+        const formPedido = document.getElementById('form-pedido-compra');
+
+        if (formPedido) {
+            formPedido.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                fetch(formPedido.action, {
+                    method: 'POST',
+                    body: new FormData(formPedido),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.sucesso) {
+                            formPedido.reset();
+                            alert(data.mensagem || 'Pedido salvo com sucesso.');
+                        } else {
+                            alert(data.erro || 'Não foi possível salvar o pedido.');
+                        }
+                    })
+                    .catch(error => console.error('Erro ao salvar pedido:', error));
+            });
+        }
+
         function aplicarMascaraTelefone(input) {
             if (!input) return;
             let v = input.value.replace(/\D/g, '').substring(0, 11);

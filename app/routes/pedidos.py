@@ -80,6 +80,13 @@ def novo_pedido():
         db.session.add(novo)
         db.session.commit()
 
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+            return jsonify({
+                'sucesso': True,
+                'mensagem': 'Pedido salvo e movido para Em Cotação!',
+                'pedido_id': novo.id
+            })
+
         flash('Pedido salvo e movido para Em Cotação!', 'success')
         return redirect(url_for('main.index'))
 
@@ -149,6 +156,7 @@ def listar_cotacoes(pedido_id):
         'data_coleta': pedido.data_coleta.isoformat() if pedido.data_coleta else '',
         'data_entrega': pedido.data_entrega.isoformat() if pedido.data_entrega else '',
         'cotacoes_encerradas': pedido.status != 'em_cotacao',
+        'cotacoes_count': len(cotacoes),
         'cotacoes': resultado_cotacoes
     })
 
@@ -177,7 +185,11 @@ def incluir_cotacao(pedido_id):
     db.session.commit()
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify({'sucesso': True})
+        return jsonify({
+            'sucesso': True,
+            'pedido_id': pedido.id,
+            'cotacoes_count': CotacaoFrete.query.filter_by(pedido_id=pedido.id).count()
+        })
 
     flash('Cotação lançada com sucesso!', 'success')
     return redirect(url_for('main.index'))
@@ -265,11 +277,23 @@ def salvar_datas_pedido(pedido_id):
     if data_entrega < data_coleta:
         return jsonify({'sucesso': False, 'mensagem': 'A data de entrega não pode ser anterior à data de coleta.'}), 400
 
+    coleta_foi_adiada = (
+        pedido.status == 'em_transito'
+        and pedido.data_coleta is not None
+        and data_coleta > pedido.data_coleta
+    )
+
     pedido.data_coleta = data_coleta
     pedido.data_entrega = data_entrega
+    if coleta_foi_adiada:
+        pedido.status = 'aguardando_coleta'
     db.session.commit()
 
-    return jsonify({'sucesso': True, 'mensagem': 'Datas salvas com sucesso.'})
+    return jsonify({
+        'sucesso': True,
+        'mensagem': 'Datas salvas com sucesso.',
+        'status': pedido.status
+    })
 
 
 # 4. Reverter Cotação Vencedora e Retornar Status do Pedido para 'em_cotacao'

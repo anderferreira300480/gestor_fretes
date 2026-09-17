@@ -21,12 +21,12 @@
                         </div>
                         <div class="col-md-5">
                             <label class="form-label small fw-semibold text-secondary">CNPJ / CPF</label>
-                            <input type="text" class="form-control form-control-sm" id="cnpjInput" name="cnpj" onblur="verificarCnpjExistente(this.value)" required>
+                            <input type="text" class="form-control form-control-sm mascara-cnpj-cpf" id="cnpjInput" name="cnpj" placeholder="00.000.000/0000-00" onblur="verificarCnpjExistente(this.value)" required>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label small fw-semibold text-secondary">CEP</label>
-                            <input type="text" class="form-control form-control-sm" id="cepInput" name="cep" onblur="buscarCEP(this.value, '')">
+                            <input type="text" class="form-control form-control-sm mascara-cep" id="cepInput" name="cep" placeholder="00000-000" onblur="buscarCEP(this.value, '')">
                         </div>
                         <div class="col-md-8">
                             <label class="form-label small fw-semibold text-secondary">Endereço</label>
@@ -62,7 +62,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold text-secondary">Telefone / WhatsApp</label>
-                            <input type="text" class="form-control form-control-sm" name="telefone" placeholder="(00) 00000-0000">
+                            <input type="text" class="form-control form-control-sm mascara-telefone" name="telefone" placeholder="(00) 00000-0000">
                         </div>
 
                         <div class="col-12 mt-3">
@@ -97,6 +97,7 @@
                                 </td>
                                 <td>
                                     <span class="emp-cidade-uf">{{ fornecedor.cidade }}/{{ fornecedor.estado }}</span>
+                                    <small class="text-muted d-block emp-cep">CEP: {{ fornecedor.cep or '-' }}</small>
                                 </td>
                                 <td>
                                     <div class="emp-contato">{{ fornecedor.nome_contato or '-' }}</div>
@@ -159,7 +160,7 @@
 
                         <div class="col-md-4">
                             <label class="form-label small fw-semibold text-secondary">CEP</label>
-                            <input type="text" class="form-control form-control-sm" id="mCep" onblur="buscarCEP(this.value, 'm')">
+                            <input type="text" class="form-control form-control-sm mascara-cep" id="mCep" onblur="buscarCEP(this.value, 'm')">
                         </div>
                         <div class="col-md-8">
                             <label class="form-label small fw-semibold text-secondary">Endereço</label>
@@ -195,7 +196,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold text-secondary">Telefone / WhatsApp</label>
-                            <input type="text" class="form-control form-control-sm" id="mTelefone">
+                            <input type="text" class="form-control form-control-sm mascara-telefone" id="mTelefone">
                         </div>
                     </div>
                 </form>
@@ -260,6 +261,45 @@
 </style>
 
 <script>
+function formatarCnpjCpf(v) {
+    v = v.replace(/\D/g, '');
+    if (v.length <= 11) {
+        return v.substring(0, 11).replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+    return v.substring(0, 14).replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2');
+}
+
+function formatarCep(v) {
+    return v.replace(/\D/g, '').substring(0, 8).replace(/^(\d{5})(\d)/, '$1-$2');
+}
+
+function formatarTelefone(v) {
+    v = v.replace(/\D/g, '').substring(0, 11);
+    if (v.length > 10) return v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+    if (v.length > 5) return v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
+    if (v.length > 2) return v.replace(/^(\d{2})(\d{0,5})$/, '($1) $2');
+    return v;
+}
+
+document.addEventListener('input', function(event) {
+    if (event.target.classList.contains('mascara-cnpj-cpf')) event.target.value = formatarCnpjCpf(event.target.value);
+    if (event.target.classList.contains('mascara-cep')) event.target.value = formatarCep(event.target.value);
+    if (event.target.classList.contains('mascara-telefone')) event.target.value = formatarTelefone(event.target.value);
+});
+
+function formatarListaCadastro() {
+    document.querySelectorAll('.emp-cnpj').forEach(elemento => elemento.textContent = formatarCnpjCpf(elemento.textContent));
+    document.querySelectorAll('.emp-telefone').forEach(elemento => {
+        if (elemento.textContent.trim() !== '-') elemento.textContent = formatarTelefone(elemento.textContent);
+    });
+    document.querySelectorAll('.emp-cep').forEach(elemento => {
+        const valor = elemento.textContent.replace(/^CEP:\s*/, '').trim();
+        elemento.textContent = `CEP: ${valor === '-' ? '-' : formatarCep(valor)}`;
+    });
+}
+
+formatarListaCadastro();
+
 // Verificar se CNPJ do fornecedor já existe
 function verificarCnpjExistente(cnpj) {
     const cnpjLimpo = cnpj.replace(/\D/g, '');
@@ -338,14 +378,15 @@ function adicionarLinhaTabela(item) {
     tr.innerHTML = `
         <td>
             <div class="fw-bold text-dark emp-razao">${item.razao_social}</div>
-            <small class="text-muted emp-cnpj">${item.cnpj}</small>
+            <small class="text-muted emp-cnpj">${formatarCnpjCpf(item.cnpj || '')}</small>
         </td>
         <td>
             <span class="emp-cidade-uf">${item.cidade}/${item.estado}</span>
+            <small class="text-muted d-block emp-cep">CEP: ${item.cep ? formatarCep(item.cep) : '-'}</small>
         </td>
         <td>
             <div class="emp-contato">${item.nome_contato || '-'}</div>
-            <small class="text-muted emp-telefone">${item.telefone || '-'}</small>
+            <small class="text-muted emp-telefone">${item.telefone ? formatarTelefone(item.telefone) : '-'}</small>
         </td>
         <td class="text-end">
             <button onclick="abrirModalVisualizar('fornecedor', ${item.id})" class="btn btn-sm btn-outline-info rounded-2 me-1">
@@ -379,8 +420,8 @@ function carregarDadosModal(tipo, id, desabilitado) {
             document.getElementById('modalRegistroId').value = data.id;
             document.getElementById('modalRegistroTipo').value = tipo;
             document.getElementById('mRazaoSocial').value = data.razao_social || '';
-            document.getElementById('mCnpj').value = data.cnpj || '';
-            document.getElementById('mCep').value = data.cep || '';
+            document.getElementById('mCnpj').value = formatarCnpjCpf(data.cnpj || '');
+            document.getElementById('mCep').value = formatarCep(data.cep || '');
             document.getElementById('mEndereco').value = data.endereco || '';
             document.getElementById('mNumero').value = data.numero || '';
             document.getElementById('mBairro').value = data.bairro || '';
@@ -388,7 +429,7 @@ function carregarDadosModal(tipo, id, desabilitado) {
             document.getElementById('mEstado').value = data.estado || '';
             document.getElementById('mNomeContato').value = data.nome_contato || '';
             document.getElementById('mEmail').value = data.email || '';
-            document.getElementById('mTelefone').value = data.telefone || '';
+            document.getElementById('mTelefone').value = formatarTelefone(data.telefone || '');
 
             const inputs = document.querySelectorAll('#formModalRegistro input:not(#mCnpj)');
             inputs.forEach(input => input.disabled = desabilitado);
@@ -431,8 +472,9 @@ function salvarAlteracaoModal() {
             if (tr) {
                 tr.querySelector('.emp-razao').innerText = data.item.razao_social;
                 tr.querySelector('.emp-cidade-uf').innerText = `${data.item.cidade}/${data.item.estado}`;
+                tr.querySelector('.emp-cep').innerText = `CEP: ${data.item.cep ? formatarCep(data.item.cep) : '-'}`;
                 tr.querySelector('.emp-contato').innerText = data.item.nome_contato || '-';
-                tr.querySelector('.emp-telefone').innerText = data.item.telefone || '-';
+                tr.querySelector('.emp-telefone').innerText = data.item.telefone ? formatarTelefone(data.item.telefone) : '-';
             }
 
             const modalElement = document.getElementById('modalRegistro');
