@@ -296,6 +296,54 @@ def salvar_datas_pedido(pedido_id):
     })
 
 
+@pedidos_bp.route('/<int:pedido_id>/confirmar-entrega', methods=['POST'])
+def confirmar_entrega(pedido_id):
+    pedido = Pedido.query.get_or_404(pedido_id)
+    dados = request.get_json(silent=True) or request.form
+    decisao = (dados.get('decisao') or '').strip().lower()
+    observacao = (dados.get('observacao_ocorrencia') or '').strip()
+
+    status_anterior = pedido.status
+    if status_anterior not in {'em_transito', 'ocorrencia'}:
+        return jsonify({
+            'sucesso': False,
+            'mensagem': 'A confirmação só está disponível para pedidos em trânsito ou em ocorrência.'
+        }), 400
+
+    if status_anterior == 'em_transito' and (not pedido.data_entrega or pedido.data_entrega > datetime.utcnow().date()):
+        return jsonify({
+            'sucesso': False,
+            'mensagem': 'A confirmação estará disponível a partir da data prevista de entrega.'
+        }), 400
+
+    if decisao not in {'entregue', 'ocorrencia'}:
+        return jsonify({'sucesso': False, 'mensagem': 'Informe uma decisão válida.'}), 400
+
+    if status_anterior == 'ocorrencia' and decisao != 'entregue':
+        return jsonify({
+            'sucesso': False,
+            'mensagem': 'Um pedido em ocorrência só pode ser confirmado como entregue.'
+        }), 400
+
+    if decisao == 'ocorrencia' and not observacao:
+        return jsonify({
+            'sucesso': False,
+            'mensagem': 'Descreva a ocorrência ou sinistro antes de continuar.'
+        }), 400
+
+    pedido.status = decisao
+    pedido.data_confirmacao_entrega = datetime.utcnow()
+    if decisao == 'ocorrencia':
+        pedido.observacao_ocorrencia = observacao
+    db.session.commit()
+
+    return jsonify({
+        'sucesso': True,
+        'mensagem': 'Entrega confirmada com sucesso.' if decisao == 'entregue' else 'Ocorrência registrada com sucesso.',
+        'status': pedido.status
+    })
+
+
 # 4. Reverter Cotação Vencedora e Retornar Status do Pedido para 'em_cotacao'
 @pedidos_bp.route('/cotacoes/<int:cotacao_id>/reverter_vencedora', methods=['POST'])
 def reverter_vencedora(cotacao_id):

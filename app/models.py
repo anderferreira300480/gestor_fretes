@@ -65,6 +65,8 @@ class Pedido(db.Model):
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
     data_coleta = db.Column(db.Date, nullable=True)
     data_entrega = db.Column(db.Date, nullable=True)
+    data_confirmacao_entrega = db.Column(db.DateTime, nullable=True)
+    observacao_ocorrencia = db.Column(db.Text, nullable=True)
     
     empresa_id = db.Column(db.Integer, db.ForeignKey('empresas.id'), nullable=True)
     fornecedor_id = db.Column(db.Integer, db.ForeignKey('fornecedores.id'), nullable=True)

@@ -1,4 +1,24 @@
 <!-- app/templates/dashboard/kanban.html -->
+<style>
+    .kanban-card-actions {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.35rem;
+    }
+
+    .kanban-card-actions .btn {
+        width: 100%;
+        min-width: 0;
+        min-height: 2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        line-height: 1.15;
+    }
+</style>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold mb-0 text-dark">Dashboard</h3>
@@ -76,7 +96,7 @@
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
                     <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
                     
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
                         <button class="btn btn-xs btn-outline-primary py-0 px-2" data-cotacoes-pedido="{{ p.id }}" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                             <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
                         </button>
@@ -113,7 +133,7 @@
                     <small class="d-block text-secondary"><b>Coleta:</b> {{ p.data_coleta.strftime('%d/%m/%Y') if p.data_coleta else 'Não informada' }}</small>
                     <small class="d-block text-secondary"><b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}</small>
                     
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
                         <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                             <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
                         </button>
@@ -138,7 +158,8 @@
             </div>
             <div class="card-body p-2" style="min-height: 500px;">
                 {% for p in kanban.em_transito %}
-                <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
+                {% set entrega_pendente = p.data_entrega and p.data_entrega <= hoje %}
+                <div class="card shadow-sm mb-2 p-2 border-0 bg-white {% if entrega_pendente %}border-start border-4 border-warning{% endif %}">
                     <small class="fw-bold text-dark d-block">
                         CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
                     </small>
@@ -147,9 +168,19 @@
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
                     <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
                     <small class="d-block text-secondary"><b>Coleta:</b> {{ p.data_coleta.strftime('%d/%m/%Y') if p.data_coleta else 'Não informada' }}</small>
-                    <small class="d-block text-secondary"><b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}</small>
+                    <small class="d-block {% if entrega_pendente %}text-warning-emphasis fw-bold{% else %}text-secondary{% endif %}">
+                        <b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}
+                    </small>
+                    {% if entrega_pendente %}
+                    <div class="alert alert-warning py-1 px-2 mb-1 mt-1 small">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i> Confirmação pendente
+                    </div>
+                    <button class="btn btn-sm btn-warning w-100 fw-bold mt-1" onclick="abrirModalConfirmacaoEntrega('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                        <i class="fa-solid fa-clipboard-check me-1"></i> Confirmar entrega
+                    </button>
+                    {% endif %}
                     
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
                         <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                             <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
                         </button>
@@ -184,7 +215,7 @@
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
                     <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
                     
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
                         <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                             <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
                         </button>
@@ -218,13 +249,17 @@
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
                     <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    <small class="d-block text-secondary"><b>Relato:</b> {{ p.observacao_ocorrencia or 'Não informado' }}</small>
                     
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
                         <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                             <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
                         </button>
                         <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                             <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                        </button>
+                        <button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalConfirmacaoEntrega('{{ p.id }}', '{{ p.numero_pedido_compra }}', true)">
+                            <i class="fa-solid fa-clipboard-check me-1"></i> Confirmar entrega
                         </button>
                         <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
                             <i class="fa-solid fa-trash"></i>
@@ -439,6 +474,32 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalConfirmacaoEntrega" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning-subtle">
+                <h5 class="modal-title fw-bold text-dark">Confirmar entrega - Pedido <span id="confirmacaoEntregaPedidoNum"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">A data prevista de entrega foi alcançada. O que aconteceu?</p>
+                <div id="formularioOcorrenciaEntrega" class="d-none">
+                    <label for="observacaoOcorrenciaEntrega" class="form-label fw-semibold">Descreva a ocorrência ou sinistro</label>
+                    <textarea id="observacaoOcorrenciaEntrega" class="form-control" rows="4" placeholder="Informe o que ocorreu..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="botaoOcorrenciaEntrega" class="btn btn-outline-danger" onclick="selecionarDecisaoEntrega('ocorrencia')">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i> Houve ocorrência/sinistro
+                </button>
+                <button type="button" id="botaoEntregaRealizada" class="btn btn-success" onclick="selecionarDecisaoEntrega('entregue')">
+                    <i class="fa-solid fa-circle-check me-1"></i> Entrega realizada
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function excluirPedido(pedidoId, numeroPedido) {
     if (!confirm(`Deseja excluir o pedido ${numeroPedido}? Esta ação removerá o pedido e suas cotações do banco de dados.`)) {
@@ -606,9 +667,72 @@ function formatarStatusPedido(status) {
         aguardando_coleta: 'Aguardando coleta',
         em_transito: 'Em trânsito',
         entregue: 'Entregue',
-        ocorrencia: 'Ocorrência'
+        ocorrencia: 'Ocorrência/Sinistro'
     };
     return statusFormatado[status] || status || '-';
+}
+
+let pedidoConfirmacaoEntregaId = null;
+
+function abrirModalConfirmacaoEntrega(pedidoId, numeroPedido, resolverSinistro = false) {
+    pedidoConfirmacaoEntregaId = pedidoId;
+    document.getElementById('confirmacaoEntregaPedidoNum').innerText = numeroPedido;
+    document.getElementById('formularioOcorrenciaEntrega').classList.add('d-none');
+    document.getElementById('observacaoOcorrenciaEntrega').value = '';
+    document.getElementById('botaoOcorrenciaEntrega').innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> Houve ocorrência/sinistro';
+    document.getElementById('botaoEntregaRealizada').classList.remove('d-none');
+    document.getElementById('botaoOcorrenciaEntrega').classList.toggle('d-none', resolverSinistro);
+    document.getElementById('botaoEntregaRealizada').innerHTML = resolverSinistro
+        ? '<i class="fa-solid fa-circle-check me-1"></i> Confirmar entrega resolvida'
+        : '<i class="fa-solid fa-circle-check me-1"></i> Entrega realizada';
+    document.querySelector('#modalConfirmacaoEntrega .modal-body p').innerText = resolverSinistro
+        ? 'O sinistro foi resolvido e a mercadoria foi entregue?'
+        : 'A data prevista de entrega foi alcançada. O que aconteceu?';
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalConfirmacaoEntrega')).show();
+}
+
+function selecionarDecisaoEntrega(decisao) {
+    const formulario = document.getElementById('formularioOcorrenciaEntrega');
+    const observacao = document.getElementById('observacaoOcorrenciaEntrega').value.trim();
+
+    if (decisao === 'ocorrencia' && formulario.classList.contains('d-none')) {
+        formulario.classList.remove('d-none');
+        document.getElementById('botaoEntregaRealizada').classList.add('d-none');
+        document.getElementById('botaoOcorrenciaEntrega').innerHTML = '<i class="fa-solid fa-check me-1"></i> Registrar ocorrência';
+        document.getElementById('observacaoOcorrenciaEntrega').focus();
+        return;
+    }
+
+    if (decisao === 'ocorrencia' && !observacao) {
+        alert('Descreva a ocorrência ou sinistro antes de continuar.');
+        return;
+    }
+
+    const mensagem = decisao === 'entregue'
+        ? 'Confirma que a entrega foi realizada?'
+        : 'Registrar esta ocorrência e mover o pedido para Ocorrência/Sinistro?';
+    if (!confirm(mensagem)) {
+        return;
+    }
+
+    fetch('/pedidos/' + pedidoConfirmacaoEntregaId + '/confirmar-entrega', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ decisao: decisao, observacao_ocorrencia: observacao })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.sucesso) {
+            alert(data.mensagem || 'Não foi possível confirmar a entrega.');
+            return;
+        }
+        bootstrap.Modal.getInstance(document.getElementById('modalConfirmacaoEntrega'))?.hide();
+        carregarTela('/kanban');
+    })
+    .catch(() => alert('Não foi possível concluir a confirmação da entrega.'));
 }
 
 function formatarNumero(valor) {

@@ -31,7 +31,9 @@ def _atualizar_schema():
         'dim_altura': 'FLOAT',
         'dim_largura': 'FLOAT',
         'dim_comprimento': 'FLOAT',
-        'observacoes': 'TEXT'
+        'observacoes': 'TEXT',
+        'data_confirmacao_entrega': 'DATETIME',
+        'observacao_ocorrencia': 'TEXT'
     }
     for coluna, tipo in novos_campos_pedido.items():
         if coluna not in colunas_pedidos:

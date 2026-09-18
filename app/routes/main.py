@@ -45,6 +45,7 @@ def index():
         return render_template(
             'dashboard/kanban.html',
             kanban=kanban_data,
+            hoje=date.today(),
             empresas_list=empresas_list,
             fornecedores_list=fornecedores_list,
             transportadoras_list=transportadoras_list,
@@ -57,6 +58,7 @@ def index():
     return render_template(
         'base.html', 
         kanban=kanban_data, 
+        hoje=date.today(),
         empresas_list=empresas_list,
         fornecedores_list=fornecedores_list,
         transportadoras_list=transportadoras_list,
