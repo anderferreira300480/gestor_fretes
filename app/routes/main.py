@@ -1,4 +1,5 @@
-# app/routes/main.py
+"""Rotas da tela inicial e do quadro Kanban."""
+
 from flask import Blueprint, render_template, request
 from datetime import date
 from app.database import db
@@ -9,8 +10,11 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 @main_bp.route('/kanban')
 def index():
+    """Renderiza o Kanban e promove coletas vencidas para ``em_transito``."""
     empresa_id = request.args.get('empresa_id', type=int)
 
+    # A transição é feita quando o dashboard é acessado; não há tarefa em
+    # segundo plano para atualizar pedidos automaticamente.
     pedidos_para_atualizar = Pedido.query.filter(
         Pedido.status == 'aguardando_coleta',
         Pedido.data_coleta.isnot(None),
@@ -21,7 +25,7 @@ def index():
             pedido.status = 'em_transito'
         db.session.commit()
     
-    # Consulta de pedidos (geral ou filtrado por empresa)
+    # Consulta todos os pedidos ou apenas os vinculados à empresa escolhida.
     query = Pedido.query
     if empresa_id:
         query = query.filter_by(empresa_id=empresa_id)
@@ -40,7 +44,7 @@ def index():
     fornecedores_list = Fornecedor.query.order_by(Fornecedor.razao_social).all()
     transportadoras_list = Transportadora.query.order_by(Transportadora.razao_social).all()
 
-    # Verifica se a requisição veio via JS/AJAX (carregarTela)
+    # AJAX recebe somente o fragmento; acesso direto recebe o layout completo.
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return render_template(
             'dashboard/kanban.html',

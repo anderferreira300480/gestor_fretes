@@ -1,4 +1,5 @@
 <!-- app/templates/dashboard/kanban.html -->
+<!-- Tela principal: colunas de status e modais de cotacoes, anexos e entrega. -->
 <style>
     .kanban-card-actions {
         display: grid !important;
@@ -30,7 +31,7 @@
             <i class="fa-solid fa-filter text-muted me-2"></i>
             <span class="small text-muted me-2 fw-semibold">Empresa:</span>
             <select class="form-select form-select-sm border-0 bg-transparent fw-bold text-dark" style="min-width: 180px; cursor: pointer;" onchange="filtrarPorEmpresa(this.value)">
-                <option value="" {% if not empresa_selecionada %}selected{% endif %}>Todas (Visão Geral)</option>
+                <option value="" {% if not empresa_selecionada %}selected{% endif %}>Visão geral (todos os pedidos)</option>
                 {% for emp in empresas_list %}
                     <option value="{{ emp.id }}" {% if empresa_selecionada == emp.id %}selected{% endif %}>
                         {{ emp.razao_social }}
@@ -249,6 +250,8 @@
                     <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
                     <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
                     <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                    <small class="d-block text-secondary"><b>Coleta:</b> {{ p.data_coleta.strftime('%d/%m/%Y') if p.data_coleta else 'Não informada' }}</small>
+                    <small class="d-block text-secondary"><b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}</small>
                     <small class="d-block text-secondary"><b>Relato:</b> {{ p.observacao_ocorrencia or 'Não informado' }}</small>
                     
                     <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
@@ -588,14 +591,19 @@ function abrirModalCotacao(pedidoId, numeroPedido, mostrarModal = true) {
                     let acaoHtml = '';
                     let linhaClasse = '';
                     const datasSalvas = Boolean(data.data_coleta && data.data_entrega);
+                    const pedidoEntregue = data.pedido_status === 'entregue';
 
                     if (c.observacao) {
                         window.justificativasCotacoes[c.id] = c.observacao;
                     }
 
                     if (c.aprovada) {
-                        const acaoDatas = datasSalvas
-                            ? `<button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="editarDatas(${c.id}, ${pedidoId})">
+                        const acaoDatas = pedidoEntregue
+                            ? `<button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" disabled title="Pedidos entregues não permitem editar datas">
+                                <i class="fa-solid fa-pen me-1"></i> Editar Datas
+                            </button>`
+                            : datasSalvas
+                            ? `<button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="editarDatas(${c.id}, ${pedidoId})" ${pedidoEntregue ? 'disabled title="Pedidos entregues não permitem editar datas"' : ''}>
                                 <i class="fa-solid fa-pen me-1"></i> Editar Datas
                             </button>`
                             : `<button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size: 0.75rem;" onclick="salvarDatas(${pedidoId})">
@@ -608,7 +616,7 @@ function abrirModalCotacao(pedidoId, numeroPedido, mostrarModal = true) {
                                     <i class="fa-solid fa-comment-dots me-1"></i> Ver justificativa
                                 </button>` : ''}
                                 ${encerradas ? acaoDatas : ''}
-                                <button class="btn btn-xs btn-outline-warning py-0 px-2" style="font-size: 0.75rem;" onclick="reverterVencedora(${c.id})" title="Desfazer escolha e retornar pedido para 'Em Cotação'">
+                                <button class="btn btn-xs btn-outline-warning py-0 px-2" style="font-size: 0.75rem;" onclick="reverterVencedora(${c.id})" ${pedidoEntregue ? 'disabled title="Pedidos entregues não permitem reverter a cotação"' : "title=\"Desfazer escolha e retornar pedido para 'Em Cotação'\""}>
                                     <i class="fa-solid fa-undo me-1"></i> Reverter
                                 </button>
                             </div>
@@ -635,10 +643,10 @@ function abrirModalCotacao(pedidoId, numeroPedido, mostrarModal = true) {
                             <td class="text-primary coluna-valor">R$ ${parseFloat(c.valor_frete).toFixed(2)}</td>
                             <td class="coluna-prazo">${c.prazo_dias} dias</td>
                             <td class="celulas-datas-cotacao${encerradas ? '' : ' d-none'}">
-                                ${c.aprovada ? `<input type="date" class="form-control form-control-sm" id="dataColeta-${c.id}" value="${data.data_coleta || ''}" aria-label="Data da coleta" ${datasSalvas ? 'disabled' : ''}>` : ''}
+                                ${c.aprovada ? `<input type="date" class="form-control form-control-sm" id="dataColeta-${c.id}" value="${data.data_coleta || ''}" aria-label="Data da coleta" ${pedidoEntregue || datasSalvas ? 'disabled' : ''}>` : ''}
                             </td>
                             <td class="celulas-datas-cotacao${encerradas ? '' : ' d-none'}">
-                                ${c.aprovada ? `<input type="date" class="form-control form-control-sm" id="dataEntrega-${c.id}" value="${data.data_entrega || ''}" aria-label="Data da entrega" ${datasSalvas ? 'disabled' : ''}>` : ''}
+                                ${c.aprovada ? `<input type="date" class="form-control form-control-sm" id="dataEntrega-${c.id}" value="${data.data_entrega || ''}" aria-label="Data da entrega" ${pedidoEntregue || datasSalvas ? 'disabled' : ''}>` : ''}
                             </td>
                             <td class="text-end coluna-acoes">${acaoHtml}</td>
                         </tr>

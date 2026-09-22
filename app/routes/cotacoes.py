@@ -1,3 +1,9 @@
+"""Fluxo antigo de cotações mantido para compatibilidade.
+
+O fluxo principal atual está em routes/pedidos.py. Antes de reutilizar estas
+rotas, confira a compatibilidade do campo ``aprovada`` e dos valores de status.
+"""
+
 from flask import Blueprint, render_template, request, redirect, url_for
 from app.database import db
 from app.models import Pedido, CotacaoFrete, Transportadora
@@ -6,6 +12,7 @@ cotacoes_bp = Blueprint('cotacoes', __name__)
 
 @cotacoes_bp.route('/cotacoes/adicionar/<int:pedido_id>', methods=['POST'])
 def adicionar(pedido_id):
+    """Adiciona uma cotação pelo formulário legado e renderiza detalhes."""
     transportadora_id = request.form.get('transportadora_id')
     valor_frete = request.form.get('valor_cotado')  # Pega do campo do form
     prazo_dias = request.form.get('prazo_dias')
@@ -29,6 +36,7 @@ def adicionar(pedido_id):
 
 @cotacoes_bp.route('/cotacoes/<int:cotacao_id>/selecionar-vencedor', methods=['POST'])
 def selecionar_vencedor(cotacao_id):
+    """Seleciona vencedor no fluxo legado; revisar antes de manutenção."""
     cotacao = CotacaoFrete.query.get_or_404(cotacao_id)
     
     # Desmarca outras cotações do mesmo pedido e marca a escolhida

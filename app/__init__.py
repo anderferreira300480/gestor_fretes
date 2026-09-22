@@ -1,10 +1,21 @@
-# app/__init__.py
+"""Configuração e fábrica da aplicação Flask.
+
+Este módulo concentra a criação do objeto Flask, a configuração do banco,
+o registro das rotas e a preparação inicial do schema local.
+"""
+
 from flask import Flask
 from app.database import db
 from sqlalchemy import text
 
 
 def _atualizar_schema():
+    """Adiciona colunas novas ao SQLite já existente.
+
+    É uma migração manual simples para instalações locais antigas. Ela evita
+    que a aplicação quebre quando o modelo ganha campos novos, mas não
+    substitui uma ferramenta de migrações versionadas em produção.
+    """
     colunas_pedidos = {
         coluna['name']
         for coluna in db.session.execute(text('PRAGMA table_info(pedidos)')).mappings()
@@ -42,6 +53,7 @@ def _atualizar_schema():
     db.session.commit()
 
 def create_app():
+    """Cria e configura uma instância independente da aplicação Flask."""
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'sua_chave_secreta'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gestor.db'
@@ -49,13 +61,14 @@ def create_app():
 
     db.init_app(app)
 
-    # Importação das rotas
+    # Importar os blueprints dentro da fábrica evita ciclos de importação e
+    # mantém cada conjunto de endpoints organizado no próprio módulo.
     from app.routes.main import main_bp
     from app.routes.pedidos import pedidos_bp
     from app.routes.cotacoes import cotacoes_bp
     from app.routes.cadastros import cadastros_bp
 
-    # Registro das rotas
+    # Registrar os blueprints torna suas rotas disponíveis no app principal.
     app.register_blueprint(main_bp)
     app.register_blueprint(pedidos_bp)
     app.register_blueprint(cotacoes_bp)
@@ -64,6 +77,8 @@ def create_app():
     print("--- BLUEPRINT DE CADASTROS REGISTRADO COM SUCESSO ---")
 
     with app.app_context():
+        # Cria tabelas ausentes e depois aplica as colunas adicionadas ao longo
+        # da evolução do protótipo.
         db.create_all()
         _atualizar_schema()
 

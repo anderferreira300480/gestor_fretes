@@ -1,3 +1,9 @@
+"""Endpoints dos cadastros de empresas, transportadoras e fornecedores.
+
+As três entidades compartilham os mesmos campos de endereço e contato. O
+frontend usa estas rotas tanto para páginas HTML quanto para operações AJAX.
+"""
+
 import re
 from flask import Blueprint, render_template, request, jsonify
 from app.database import db
@@ -6,6 +12,7 @@ from app.models import Empresa, Transportadora, Fornecedor
 cadastros_bp = Blueprint('cadastros', __name__, url_prefix='/cadastros')
 
 def apenas_numeros(valor):
+    """Remove máscara e deixa somente dígitos em CNPJ, CEP e telefone."""
     if not valor:
         return ''
     return re.sub(r'\D', '', valor)
@@ -13,6 +20,7 @@ def apenas_numeros(valor):
 
 @cadastros_bp.route('/verificar-cnpj', methods=['GET'])
 def verificar_cnpj():
+    """Informa se um CNPJ já existe no cadastro solicitado."""
     cnpj = apenas_numeros(request.args.get('cnpj', ''))
     tipo = request.args.get('tipo', '')
 
@@ -33,6 +41,7 @@ def verificar_cnpj():
 # --- ROTA GENÉRICA PARA CONSULTAR DADOS DO MODAL (VISUALIZAR/EDITAR) ---
 @cadastros_bp.route('/api/<tipo>/<int:registro_id>', methods=['GET'])
 def obter_registro(tipo, registro_id):
+    """Retorna os dados de um cadastro para preencher o modal de edição."""
     model_map = {
         'empresa': Empresa,
         'transportadora': Transportadora,
@@ -65,6 +74,7 @@ def obter_registro(tipo, registro_id):
 # --- ROTA GENÉRICA PARA ATUALIZAR REGISTRO VIA MODAL ---
 @cadastros_bp.route('/api/<tipo>/atualizar/<int:registro_id>', methods=['POST'])
 def atualizar_registro(tipo, registro_id):
+    """Atualiza os campos editáveis de um cadastro e retorna JSON."""
     model_map = {
         'empresa': Empresa,
         'transportadora': Transportadora,
@@ -116,6 +126,7 @@ def atualizar_registro(tipo, registro_id):
 # --- EMPRESAS ---
 @cadastros_bp.route('/empresas', methods=['GET', 'POST'], strict_slashes=False)
 def empresas():
+    """Lista empresas e cria uma nova empresa via formulário ou AJAX."""
     erro = None
     if request.method == 'POST':
         cnpj_limpo = apenas_numeros(request.form.get('cnpj'))
@@ -163,7 +174,8 @@ def empresas():
 
     empresas_list = Empresa.query.all()
     
-    # Se for requisição AJAX (carregarTela do SPA) renderiza apenas o fragmento HTML
+    # A tela atual é compatível com AJAX e acesso direto; ambos recebem o mesmo
+    # template porque o carregador do frontend aceita os dois formatos.
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return render_template('cadastros/empresas.html', empresas=empresas_list, erro=erro)
     
@@ -174,6 +186,7 @@ def empresas():
 # --- TRANSPORTADORAS ---
 @cadastros_bp.route('/transportadoras', methods=['GET', 'POST'], strict_slashes=False)
 def transportadoras():
+    """Lista transportadoras e cria uma nova transportadora."""
     erro = None
     if request.method == 'POST':
         cnpj_limpo = apenas_numeros(request.form.get('cnpj'))
@@ -226,6 +239,7 @@ def transportadoras():
 # --- FORNECEDORES ---
 @cadastros_bp.route('/fornecedores', methods=['GET', 'POST'], strict_slashes=False)
 def fornecedores():
+    """Lista fornecedores e cria um novo fornecedor."""
     erro = None
     if request.method == 'POST':
         cnpj_limpo = apenas_numeros(request.form.get('cnpj'))

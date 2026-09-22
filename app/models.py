@@ -1,7 +1,14 @@
+"""Modelos persistidos no SQLite da aplicação.
+
+Os nomes dos atributos são usados tanto pelas rotas quanto pelos templates.
+Alterações aqui normalmente exigem uma atualização de schema em app/__init__.py.
+"""
+
 from app.database import db
 from datetime import datetime
 
 class Empresa(db.Model):
+    """Empresa/unidade que solicita o transporte."""
     __tablename__ = 'empresas'
     id = db.Column(db.Integer, primary_key=True)
     razao_social = db.Column(db.String(150), nullable=False)
@@ -19,6 +26,7 @@ class Empresa(db.Model):
     pedidos = db.relationship('Pedido', backref='empresa', lazy=True)
 
 class Transportadora(db.Model):
+    """Transportadora que pode enviar uma cotação de frete."""
     __tablename__ = 'transportadoras'
     id = db.Column(db.Integer, primary_key=True)
     razao_social = db.Column(db.String(150), nullable=False)
@@ -34,6 +42,7 @@ class Transportadora(db.Model):
     telefone = db.Column(db.String(30))
 
 class Fornecedor(db.Model):
+    """Fornecedor associado à origem ou à carga do pedido."""
     __tablename__ = 'fornecedores'
     id = db.Column(db.Integer, primary_key=True)
     razao_social = db.Column(db.String(150), nullable=False)
@@ -51,6 +60,7 @@ class Fornecedor(db.Model):
     pedidos = db.relationship('Pedido', backref='fornecedor', lazy=True)
 
 class Pedido(db.Model):
+    """Pedido acompanhado no Kanban desde a cotação até a entrega."""
     __tablename__ = 'pedidos'
     id = db.Column(db.Integer, primary_key=True)
     numero_pedido_compra = db.Column(db.String(50), nullable=False)
@@ -71,10 +81,13 @@ class Pedido(db.Model):
     empresa_id = db.Column(db.Integer, db.ForeignKey('empresas.id'), nullable=True)
     fornecedor_id = db.Column(db.Integer, db.ForeignKey('fornecedores.id'), nullable=True)
     
+    # Ao excluir um pedido, os registros relacionados também são removidos do
+    # banco. Os arquivos físicos dos anexos, porém, precisam de limpeza própria.
     cotacoes = db.relationship('CotacaoFrete', backref='pedido', lazy=True, cascade="all, delete-orphan")
     anexos = db.relationship('Anexo', backref='pedido', lazy=True, cascade="all, delete-orphan")
 
 class CotacaoFrete(db.Model):
+    """Proposta de uma transportadora para um pedido."""
     __tablename__ = 'cotacoes'
     id = db.Column(db.Integer, primary_key=True)
     valor_frete = db.Column(db.Float, nullable=False)
@@ -87,6 +100,7 @@ class CotacaoFrete(db.Model):
     transportadora = db.relationship('Transportadora', backref='cotacoes', lazy=True)
 
 class Anexo(db.Model):
+    """Metadados de um arquivo enviado para acompanhar o pedido."""
     __tablename__ = 'anexos'
     id = db.Column(db.Integer, primary_key=True)
     tipo_documento = db.Column(db.String(50), nullable=False)  # Ex: Nota Fiscal, CTe, Outros
@@ -96,5 +110,5 @@ class Anexo(db.Model):
     
     pedido_id = db.Column(db.Integer, db.ForeignKey('pedidos.id'), nullable=False)
 
-# Alias de compatibilidade
+# Alias mantido para código antigo que importava Cotacao com esse nome.
 Cotacao = CotacaoFrete

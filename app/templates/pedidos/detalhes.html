@@ -1,3 +1,4 @@
+<!-- Fragmento legado para listar e aprovar cotacoes fora do modal atual. -->
 {% for c in pedido.cotacoes %}
 <tr class="{% if c.vencedora %}table-success{% endif %}">
     <td>{{ c.transportadora.razao_social if c.transportadora else 'N/A' }}</td>

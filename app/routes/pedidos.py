@@ -1,3 +1,5 @@
+"""Rotas do ciclo de vida dos pedidos, cotações e anexos."""
+
 import os
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, current_app
@@ -10,11 +12,13 @@ pedidos_bp = Blueprint('pedidos', __name__, url_prefix='/pedidos')
 ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'xml', 'zip', 'doc', 'docx'}
 
 def allowed_file(filename):
+    """Verifica a extensão permitida antes de salvar um upload."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @pedidos_bp.route('/api/empresa/<int:empresa_id>', methods=['GET'])
 def obter_empresa(empresa_id):
+    """Fornece endereço e contato da empresa para autopreenchimento."""
     empresa = Empresa.query.get(empresa_id)
     if not empresa:
         return jsonify({'erro': 'Empresa não encontrada'}), 404
@@ -34,6 +38,7 @@ def obter_empresa(empresa_id):
 
 @pedidos_bp.route('/api/fornecedor/<int:fornecedor_id>', methods=['GET'])
 def obter_fornecedor(fornecedor_id):
+    """Fornece endereço e contato do fornecedor para autopreenchimento."""
     fornecedor = Fornecedor.query.get(fornecedor_id)
     if not fornecedor:
         return jsonify({'erro': 'Fornecedor não encontrado'}), 404
@@ -53,6 +58,7 @@ def obter_fornecedor(fornecedor_id):
 
 @pedidos_bp.route('/novo', methods=['GET', 'POST'])
 def novo_pedido():
+    """Exibe o formulário ou cria um pedido no status inicial de cotação."""
     if request.method == 'POST':
         empresa_id = request.form.get('empresa_id')
         fornecedor_id = request.form.get('fornecedor_id')
@@ -60,6 +66,7 @@ def novo_pedido():
         numero_pedido_compra = request.form.get('numero_pedido_compra') or request.form.get('numero_pedido')
         valor_mercadoria = request.form.get('valor_mercadoria') or request.form.get('valor_carga') or 0.0
 
+        # Campos dimensionais são opcionais; vazios viram None no banco.
         def converter_float(nome):
             valor = request.form.get(nome)
             return float(valor) if valor else None
@@ -101,11 +108,13 @@ def novo_pedido():
 
 @pedidos_bp.route('/salvar', methods=['POST'])
 def salvar_pedido():
+    """Mantém uma URL alternativa usada por formulários antigos."""
     return novo_pedido()
 
 
 @pedidos_bp.route('/<int:pedido_id>/excluir', methods=['POST'])
 def excluir_pedido(pedido_id):
+    """Exclui um pedido e seus registros relacionados via cascade do modelo."""
     pedido = Pedido.query.get_or_404(pedido_id)
     db.session.delete(pedido)
     db.session.commit()
@@ -120,6 +129,7 @@ def excluir_pedido(pedido_id):
 # 1. Listar cotações em JSON para a Modal ao clicar no Card (inclui o status do pedido para desabilitar o form)
 @pedidos_bp.route('/<int:pedido_id>/cotacoes', methods=['GET'])
 def listar_cotacoes(pedido_id):
+    """Monta o JSON consumido pelo modal de cotações do Kanban."""
     pedido = Pedido.query.get_or_404(pedido_id)
     cotacoes = CotacaoFrete.query.filter_by(pedido_id=pedido_id).all()
     
@@ -164,6 +174,7 @@ def listar_cotacoes(pedido_id):
 # 2. Incluir Cotação no Pedido (com trava se o pedido já saiu da fase 'em_cotacao')
 @pedidos_bp.route('/<int:pedido_id>/incluir_cotacao', methods=['POST'])
 def incluir_cotacao(pedido_id):
+    """Adiciona uma proposta enquanto o pedido ainda está em cotação."""
     pedido = Pedido.query.get_or_404(pedido_id)
     
     if pedido.status != 'em_cotacao':
@@ -197,6 +208,7 @@ def incluir_cotacao(pedido_id):
 
 @pedidos_bp.route('/cotacoes/<int:cotacao_id>/excluir', methods=['POST'])
 def excluir_cotacao(cotacao_id):
+    """Remove uma cotação somente antes do encerramento da cotação."""
     cotacao = CotacaoFrete.query.get_or_404(cotacao_id)
     pedido = Pedido.query.get_or_404(cotacao.pedido_id)
 
@@ -213,6 +225,11 @@ def excluir_cotacao(cotacao_id):
 # 3. Selecionar Cotação Vencedora e Atualizar Status do Pedido para 'aguardando_coleta'
 @pedidos_bp.route('/cotacoes/<int:cotacao_id>/selecionar_vencedora', methods=['POST'])
 def selecionar_vencedora(cotacao_id):
+    """Aprova uma cotação e move o pedido para aguardando coleta.
+
+    Quando a proposta escolhida não é a mais barata, a justificativa enviada
+    pelo usuário torna-se obrigatória e é armazenada na própria cotação.
+    """
     cotacao = CotacaoFrete.query.get_or_404(cotacao_id)
     pedido = Pedido.query.get_or_404(cotacao.pedido_id)
 
@@ -251,7 +268,19 @@ def selecionar_vencedora(cotacao_id):
 
 @pedidos_bp.route('/<int:pedido_id>/datas', methods=['POST'])
 def salvar_datas_pedido(pedido_id):
+    """Salva coleta/entrega e atualiza a etapa quando o prazo muda.
+
+    Uma nova data de coleta posterior reabre a coleta. Para um pedido em
+    ocorrência, uma nova data de entrega posterior à anterior representa uma
+    nova programação de transporte e devolve o pedido para ``em_transito``.
+    """
     pedido = Pedido.query.get_or_404(pedido_id)
+    
+    if pedido.status == 'entregue':
+        return jsonify({
+            'sucesso': False,
+            'mensagem': 'Não é possível editar as datas de um pedido entregue.'
+        }), 400
     cotacao_vencedora = CotacaoFrete.query.filter_by(
         pedido_id=pedido.id,
         aprovada=True
@@ -282,11 +311,18 @@ def salvar_datas_pedido(pedido_id):
         and pedido.data_coleta is not None
         and data_coleta > pedido.data_coleta
     )
+    entrega_foi_reprogramada = (
+        pedido.status == 'ocorrencia'
+        and pedido.data_entrega is not None
+        and data_entrega > pedido.data_entrega
+    )
 
     pedido.data_coleta = data_coleta
     pedido.data_entrega = data_entrega
     if coleta_foi_adiada:
         pedido.status = 'aguardando_coleta'
+    elif entrega_foi_reprogramada:
+        pedido.status = 'em_transito'
     db.session.commit()
 
     return jsonify({
@@ -298,6 +334,7 @@ def salvar_datas_pedido(pedido_id):
 
 @pedidos_bp.route('/<int:pedido_id>/confirmar-entrega', methods=['POST'])
 def confirmar_entrega(pedido_id):
+    """Confirma entrega ou registra ocorrência após a data prevista."""
     pedido = Pedido.query.get_or_404(pedido_id)
     dados = request.get_json(silent=True) or request.form
     decisao = (dados.get('decisao') or '').strip().lower()
@@ -347,8 +384,16 @@ def confirmar_entrega(pedido_id):
 # 4. Reverter Cotação Vencedora e Retornar Status do Pedido para 'em_cotacao'
 @pedidos_bp.route('/cotacoes/<int:cotacao_id>/reverter_vencedora', methods=['POST'])
 def reverter_vencedora(cotacao_id):
+    """Desfaz a seleção e devolve o pedido para a etapa de cotação."""
     cotacao = CotacaoFrete.query.get_or_404(cotacao_id)
     pedido = Pedido.query.get_or_404(cotacao.pedido_id)
+
+    if pedido.status == 'entregue':
+        mensagem = 'Não é possível reverter a cotação de um pedido entregue.'
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+            return jsonify({'sucesso': False, 'mensagem': mensagem}), 400
+        flash(mensagem, 'warning')
+        return redirect(url_for('main.index'))
 
     # Desmarca todas as cotações deste pedido como aprovadas
     CotacaoFrete.query.filter_by(pedido_id=pedido.id).update({'aprovada': False})
@@ -370,6 +415,7 @@ def reverter_vencedora(cotacao_id):
 # 5. Gerenciar Anexos (Upload e Consulta em JSON)
 @pedidos_bp.route('/<int:pedido_id>/anexos', methods=['GET', 'POST'])
 def gerenciar_anexos(pedido_id):
+    """Lista anexos ou salva um novo arquivo associado ao pedido."""
     if request.method == 'POST':
         tipo_documento = request.form.get('tipo_documento')
         if 'arquivo' not in request.files:
@@ -378,6 +424,8 @@ def gerenciar_anexos(pedido_id):
 
         file = request.files['arquivo']
         if file and allowed_file(file.filename):
+            # Os arquivos ficam fora de instance para poderem ser servidos pela
+            # rota de download e organizados por instalação.
             upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
             if not os.path.exists(upload_folder):
                 os.makedirs(upload_folder)
@@ -411,5 +459,6 @@ def gerenciar_anexos(pedido_id):
 # 6. Download / Exibição de Anexos
 @pedidos_bp.route('/uploads/<filename>')
 def download_anexo(filename):
+    """Entrega um arquivo já salvo na pasta de uploads."""
     upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
     return send_from_directory(upload_folder, filename)

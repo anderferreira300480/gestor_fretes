@@ -1,4 +1,7 @@
+"""Ponto único de criação da extensão de banco de dados."""
+
 from flask_sqlalchemy import SQLAlchemy
 
-# Cria a instância do banco sem vinculá-la ao app ainda (evita importação circular)
+# A extensão é criada sem app e recebe o app em create_app(). Esse padrão
+# permite importar os modelos sem criar uma aplicação global antecipadamente.
 db = SQLAlchemy()

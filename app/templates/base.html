@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Layout global: menu fixo, area de conteudo e carregamento AJAX dos fragmentos. -->
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -310,7 +311,7 @@
                     link.classList.remove('active');
                 });
 
-                if (url === '/kanban') {
+                if (url === '/kanban' || url.startsWith('/kanban?')) {
                     document.getElementById('link-dashboard')?.classList.add('active');
                 } else if (url === '/pedidos/novo') {
                     document.getElementById('link-novo-pedido')?.classList.add('active');
@@ -324,6 +325,15 @@
                 console.error('Erro ao carregar a tela:', error);
                 window.location.href = url;
             });
+        };
+
+        // Sem empresa_id, a rota retorna todos os pedidos. Com um ID, retorna
+        // somente os pedidos vinculados à empresa selecionada.
+        window.filtrarPorEmpresa = function(empresaId) {
+            const url = empresaId
+                ? `/kanban?empresa_id=${encodeURIComponent(empresaId)}`
+                : '/kanban';
+            carregarTela(url);
         };
 
         // Carrega o Dashboard automaticamente quando a página inicial for aberta sem conteúdo
