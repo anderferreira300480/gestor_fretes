@@ -1,9 +1,91 @@
 <!-- app/templates/dashboard/kanban.html -->
 <!-- Tela principal: colunas de status e modais de cotacoes, anexos e entrega. -->
 <style>
+    .kanban-shell {
+        height: 100%;
+        max-height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .kanban-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        background: rgba(244, 246, 249, 0.92);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 12px;
+        padding: 0.8rem 1rem;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+        flex-shrink: 0;
+    }
+
+    .kanban-board {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .kanban-column {
+        display: flex;
+        min-height: 0;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .kanban-column .card-header {
+        flex-shrink: 0;
+    }
+
+    .kanban-column > .card {
+        width: 100%;
+        min-height: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .kanban-column-body > .card {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .kanban-column-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        min-height: 0;
+        height: 0;
+        max-height: 100%;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(148, 163, 184, 0.7) transparent;
+        scroll-behavior: smooth;
+        overscroll-behavior: contain;
+    }
+
+    .kanban-column-body::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .kanban-column-body::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .kanban-column-body::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.7);
+        border-radius: 999px;
+    }
+
     .kanban-card-actions {
         display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2rem;
         gap: 0.35rem;
     }
 
@@ -15,265 +97,265 @@
         align-items: center;
         justify-content: center;
         text-align: center;
-        white-space: normal;
-        overflow-wrap: anywhere;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         line-height: 1.15;
     }
+
+    .kanban-card-actions .btn-outline-danger {
+        grid-column: 3;
+    }
 </style>
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h3 class="fw-bold mb-0 text-dark">Dashboard</h3>
-    </div>
-    
-    <!-- Filtro de Empresa + Novo Pedido -->
-    <div class="d-flex align-items-center gap-3">
-        <div class="d-flex align-items-center bg-white p-1 px-3 rounded shadow-sm border">
-            <i class="fa-solid fa-filter text-muted me-2"></i>
-            <span class="small text-muted me-2 fw-semibold">Empresa:</span>
-            <select class="form-select form-select-sm border-0 bg-transparent fw-bold text-dark" style="min-width: 180px; cursor: pointer;" onchange="filtrarPorEmpresa(this.value)">
-                <option value="" {% if not empresa_selecionada %}selected{% endif %}>Visão geral (todos os pedidos)</option>
-                {% for emp in empresas_list %}
-                    <option value="{{ emp.id }}" {% if empresa_selecionada == emp.id %}selected{% endif %}>
-                        {{ emp.razao_social }}
-                    </option>
-                {% endfor %}
-            </select>
+<div class="kanban-shell">
+    <div class="kanban-toolbar d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Dashboard</h3>
         </div>
-
-        <button class="btn btn-primary fw-semibold px-3 shadow-sm" onclick="carregarTela('/pedidos/novo')">
-            <i class="fa-solid fa-plus me-1"></i> NOVO PEDIDO
-        </button>
-    </div>
-</div>
-
-<!-- CARDS DE RECAPITULAÇÃO (KPIs) -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm p-3 bg-white">
-            <div class="d-flex align-items-center">
-                <div class="rounded p-3 bg-success-subtle text-success me-3">
-                    <i class="fa-solid fa-sack-dollar fs-3"></i>
-                </div>
-                <div>
-                    <span class="text-muted small d-block fw-semibold">Economia Total:</span>
-                    <h4 class="fw-bold mb-0 text-dark">R$ {{ total_economia or '0,00' }}</h4>
-                </div>
+        
+        <!-- Filtro de Empresa + Novo Pedido -->
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center bg-white p-1 px-3 rounded shadow-sm border">
+                <i class="fa-solid fa-filter text-muted me-2"></i>
+                <span class="small text-muted me-2 fw-semibold">Empresa:</span>
+                <select class="form-select form-select-sm border-0 bg-transparent fw-bold text-dark" style="min-width: 180px; cursor: pointer;" onchange="filtrarPorEmpresa(this.value)">
+                    <option value="" {% if not empresa_selecionada %}selected{% endif %}>Visão geral (todos os pedidos)</option>
+                    {% for emp in empresas_list %}
+                        <option value="{{ emp.id }}" {% if empresa_selecionada == emp.id %}selected{% endif %}>
+                            {{ emp.razao_social }}
+                        </option>
+                    {% endfor %}
+                </select>
             </div>
+
+            <button class="btn btn-primary fw-semibold px-3 shadow-sm" onclick="carregarTela('/pedidos/novo')">
+                <i class="fa-solid fa-plus me-1"></i> NOVO PEDIDO
+            </button>
         </div>
     </div>
-    
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm p-3 bg-white">
-            <div class="d-flex align-items-center">
-                <div class="rounded p-3 bg-info-subtle text-info me-3">
-                    <i class="fa-solid fa-calculator fs-3"></i>
-                </div>
-                <div>
-                    <span class="text-muted small d-block fw-semibold">Valor Médio Frete:</span>
-                    <h4 class="fw-bold mb-0 text-dark">R$ {{ valor_medio or '0,00' }}</h4>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- QUADRO KANBAN (5 COLUNAS) -->
-<div class="row row-cols-1 row-cols-md-5 g-3">
-    
-    <!-- 1. EM COTAÇÃO -->
-    <div class="col">
-        <div class="card border-0 bg-warning-subtle h-100 shadow-sm">
-            <div class="card-header bg-warning text-dark text-center fw-bold border-0 py-2">
-                📋 Em Cotação
-            </div>
-            <div class="card-body p-2" style="min-height: 500px;">
-                {% for p in kanban.em_cotacao %}
-                <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
-                    <small class="fw-bold text-dark d-block">
-                        CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
-                    </small>
-                    <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
-                    <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
-                    <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
-                    <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
-                    
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
-                        <button class="btn btn-xs btn-outline-primary py-0 px-2" data-cotacoes-pedido="{{ p.id }}" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
-                            <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
-                        </button>
-                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
-                            <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
-                        </button>
-                        <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+    <!-- CARDS DE RECAPITULAÇÃO (KPIs) -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 bg-white">
+                <div class="d-flex align-items-center">
+                    <div class="rounded p-3 bg-success-subtle text-success me-3">
+                        <i class="fa-solid fa-sack-dollar fs-3"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small d-block fw-semibold">Economia Total:</span>
+                        <h4 class="fw-bold mb-0 text-dark">R$ {{ total_economia or '0,00' }}</h4>
                     </div>
                 </div>
-                {% endfor %}
             </div>
         </div>
-    </div>
 
-    <!-- 2. AGUARDANDO COLETA -->
-    <div class="col">
-        <div class="card border-0 shadow-sm h-100" style="background-color: #ffe0b2 !important;">
-            <div class="card-header text-white text-center fw-bold border-0 py-2" style="background-color: #ff9800 !important;">
-                📦 Aguardando Coleta
-            </div>
-            <div class="card-body p-2" style="min-height: 500px;">
-                {% for p in kanban.aguardando_coleta %}
-                <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
-                    <small class="fw-bold text-dark d-block">
-                        CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
-                    </small>
-                    <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
-                    <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
-                    <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
-                    <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
-                    <small class="d-block text-secondary"><b>Status:</b> Aguardando coleta</small>
-                    <small class="d-block text-secondary"><b>Coleta:</b> {{ p.data_coleta.strftime('%d/%m/%Y') if p.data_coleta else 'Não informada' }}</small>
-                    <small class="d-block text-secondary"><b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}</small>
-                    
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
-                        <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
-                            <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
-                        </button>
-                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
-                            <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
-                        </button>
-                        <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 bg-white">
+                <div class="d-flex align-items-center">
+                    <div class="rounded p-3 bg-info-subtle text-info me-3">
+                        <i class="fa-solid fa-calculator fs-3"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small d-block fw-semibold">Valor Médio Frete:</span>
+                        <h4 class="fw-bold mb-0 text-dark">R$ {{ valor_medio or '0,00' }}</h4>
                     </div>
                 </div>
-                {% endfor %}
             </div>
         </div>
     </div>
 
-    <!-- 3. EM TRÂNSITO -->
-    <div class="col">
-        <div class="card border-0 bg-info-subtle h-100 shadow-sm">
-            <div class="card-header bg-primary text-white text-center fw-bold border-0 py-2">
-                🚚 Em Trânsito
-            </div>
-            <div class="card-body p-2" style="min-height: 500px;">
-                {% for p in kanban.em_transito %}
-                {% set entrega_pendente = p.data_entrega and p.data_entrega <= hoje %}
-                <div class="card shadow-sm mb-2 p-2 border-0 bg-white {% if entrega_pendente %}border-start border-4 border-warning{% endif %}">
-                    <small class="fw-bold text-dark d-block">
-                        CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
-                    </small>
-                    <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
-                    <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
-                    <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
-                    <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
-                    <small class="d-block text-secondary"><b>Coleta:</b> {{ p.data_coleta.strftime('%d/%m/%Y') if p.data_coleta else 'Não informada' }}</small>
-                    <small class="d-block {% if entrega_pendente %}text-warning-emphasis fw-bold{% else %}text-secondary{% endif %}">
-                        <b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}
-                    </small>
-                    {% if entrega_pendente %}
-                    <div class="alert alert-warning py-1 px-2 mb-1 mt-1 small">
-                        <i class="fa-solid fa-triangle-exclamation me-1"></i> Confirmação pendente
-                    </div>
-                    <button class="btn btn-sm btn-warning w-100 fw-bold mt-1" onclick="abrirModalConfirmacaoEntrega('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
-                        <i class="fa-solid fa-clipboard-check me-1"></i> Confirmar entrega
-                    </button>
-                    {% endif %}
-                    
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
-                        <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
-                            <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
-                        </button>
-                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
-                            <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
-                        </button>
-                        <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
+    <!-- QUADRO KANBAN (5 COLUNAS) -->
+    <div class="row row-cols-1 row-cols-md-5 g-3 kanban-board">
+        <div class="col kanban-column">
+            <div class="card border-0 bg-warning-subtle h-100 shadow-sm">
+                <div class="card-header bg-warning text-dark text-center fw-bold border-0 py-2">
+                    📋 Em Cotação
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
+                <div class="card-body p-2 kanban-column-body" style="min-height: 260px;">
+                    {% for p in kanban.em_cotacao %}
+                    <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
+                        <small class="fw-bold text-dark d-block">
+                            CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
+                        </small>
+                        <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
+                        <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                        <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
+                        <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
 
-    <!-- 4. ENTREGUE -->
-    <div class="col">
-        <div class="card border-0 bg-success-subtle h-100 shadow-sm">
-            <div class="card-header bg-success text-white text-center fw-bold border-0 py-2">
-                ✅ Entregue
-            </div>
-            <div class="card-body p-2" style="min-height: 500px;">
-                {% for p in kanban.entregue %}
-                <div class="card shadow-sm mb-2 p-2 border-0 bg-white position-relative">
-                    <i class="fa-solid fa-circle-check text-success position-absolute top-0 end-0 m-2"></i>
-                    <small class="fw-bold text-dark d-block me-3">
-                        CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
-                    </small>
-                    <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
-                    <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
-                    <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
-                    <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
-                    
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
-                        <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
-                            <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
-                        </button>
-                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
-                            <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
-                        </button>
-                        <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
+                            <button class="btn btn-xs btn-outline-primary py-0 px-2" data-cotacoes-pedido="{{ p.id }}" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                                <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
+                            </button>
+                            <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                                <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                            </button>
+                            <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
             </div>
         </div>
-    </div>
 
-    <!-- 5. OCORRÊNCIA / SINISTRO -->
-    <div class="col">
-        <div class="card border-0 bg-danger-subtle h-100 shadow-sm">
-            <div class="card-header bg-danger text-white text-center fw-bold border-0 py-2">
-                ⚠️ Ocorrência/Sinistro
+        <div class="col kanban-column">
+            <div class="card border-0 shadow-sm h-100" style="background-color: #ffe0b2 !important;">
+                <div class="card-header text-white text-center fw-bold border-0 py-2" style="background-color: #ff9800 !important;">
+                    📦 Aguardando Coleta
+                </div>
+                <div class="card-body p-2 kanban-column-body" style="min-height: 260px;">
+                    {% for p in kanban.aguardando_coleta %}
+                    <div class="card shadow-sm mb-2 p-2 border-0 bg-white">
+                        <small class="fw-bold text-dark d-block">
+                            CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
+                        </small>
+                        <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
+                        <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                        <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
+                        <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                        <small class="d-block text-secondary"><b>Status:</b> Aguardando coleta</small>
+                        <small class="d-block text-secondary"><b>Coleta:</b> {{ p.data_coleta.strftime('%d/%m/%Y') if p.data_coleta else 'Não informada' }}</small>
+                        <small class="d-block text-secondary"><b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}</small>
+
+                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
+                            <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                                <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
+                            </button>
+                            <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                                <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                            </button>
+                            <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
-            <div class="card-body p-2" style="min-height: 500px;">
-                {% for p in kanban.ocorrencia %}
-                <div class="card shadow-sm mb-2 p-2 border-0 bg-white position-relative">
-                    <i class="fa-solid fa-circle-xmark text-danger position-absolute top-0 end-0 m-2"></i>
-                    <small class="fw-bold text-dark d-block me-3">
-                        CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
-                    </small>
-                    <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
-                    <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
-                    <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
-                    <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
-                    <small class="d-block text-secondary"><b>Coleta:</b> {{ p.data_coleta.strftime('%d/%m/%Y') if p.data_coleta else 'Não informada' }}</small>
-                    <small class="d-block text-secondary"><b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}</small>
-                    <small class="d-block text-secondary"><b>Relato:</b> {{ p.observacao_ocorrencia or 'Não informado' }}</small>
-                    
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
-                        <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
-                            <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
-                        </button>
-                        <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
-                            <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
-                        </button>
-                        <button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalConfirmacaoEntrega('{{ p.id }}', '{{ p.numero_pedido_compra }}', true)">
+        </div>
+
+        <div class="col kanban-column">
+            <div class="card border-0 bg-info-subtle h-100 shadow-sm">
+                <div class="card-header bg-primary text-white text-center fw-bold border-0 py-2">
+                    🚚 Em Trânsito
+                </div>
+                <div class="card-body p-2 kanban-column-body" style="min-height: 260px;">
+                    {% for p in kanban.em_transito %}
+                    {% set entrega_pendente = p.data_entrega and p.data_entrega <= hoje %}
+                    <div class="card shadow-sm mb-2 p-2 border-0 bg-white {% if entrega_pendente %}border-start border-4 border-warning{% endif %}">
+                        <small class="fw-bold text-dark d-block">
+                            CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
+                        </small>
+                        <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
+                        <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                        <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
+                        <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                        <small class="d-block text-secondary"><b>Coleta:</b> {{ p.data_coleta.strftime('%d/%m/%Y') if p.data_coleta else 'Não informada' }}</small>
+                        <small class="d-block {% if entrega_pendente %}text-warning-emphasis fw-bold{% else %}text-secondary{% endif %}">
+                            <b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}
+                        </small>
+                        {% if entrega_pendente %}
+                        <div class="alert alert-warning py-1 px-2 mb-1 mt-1 small">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i> Confirmação pendente
+                        </div>
+                        <button class="btn btn-sm btn-warning w-100 fw-bold mt-1" onclick="abrirModalConfirmacaoEntrega('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                             <i class="fa-solid fa-clipboard-check me-1"></i> Confirmar entrega
                         </button>
-                        <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
+                            <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                                <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
+                            </button>
+                            <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                                <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                            </button>
+                            <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col kanban-column">
+            <div class="card border-0 bg-success-subtle h-100 shadow-sm">
+                <div class="card-header bg-success text-white text-center fw-bold border-0 py-2">
+                    ✅ Entregue
+                </div>
+                <div class="card-body p-2 kanban-column-body" style="min-height: 260px;">
+                    {% for p in kanban.entregue %}
+                    <div class="card shadow-sm mb-2 p-2 border-0 bg-white position-relative">
+                        <i class="fa-solid fa-circle-check text-success position-absolute top-0 end-0 m-2"></i>
+                        <small class="fw-bold text-dark d-block me-3">
+                            CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
+                        </small>
+                        <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
+                        <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                        <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
+                        <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+
+                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
+                            <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                                <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
+                            </button>
+                            <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                                <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                            </button>
+                            <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col kanban-column">
+            <div class="card border-0 bg-danger-subtle h-100 shadow-sm">
+                <div class="card-header bg-danger text-white text-center fw-bold border-0 py-2">
+                    ⚠️ Ocorrência/Sinistro
+                </div>
+                <div class="card-body p-2 kanban-column-body" style="min-height: 260px;">
+                    {% for p in kanban.ocorrencia %}
+                    <div class="card shadow-sm mb-2 p-2 border-0 bg-white position-relative">
+                        <i class="fa-solid fa-circle-xmark text-danger position-absolute top-0 end-0 m-2"></i>
+                        <small class="fw-bold text-dark d-block me-3">
+                            CNPJ: {{ p.empresa.cnpj if p.empresa else 'Não informado' }}
+                        </small>
+                        <small class="d-block text-secondary"><b>Empresa:</b> {{ p.empresa.razao_social if p.empresa else 'Unidade' }}</small>
+                        <small class="d-block text-secondary"><b>Nº Pedido:</b> {{ p.numero_pedido_compra }}</small>
+                        <small class="d-block text-secondary"><b>Fornecedor:</b> {{ p.fornecedor.razao_social if p.fornecedor else 'N/A' }}</small>
+                        <small class="d-block text-secondary"><b>Valor do Pedido:</b> R$ {{ '%.2f'|format(p.valor_mercadoria|float) if p.valor_mercadoria else '0.00' }}</small>
+                        <small class="d-block text-secondary"><b>Coleta:</b> {{ p.data_coleta.strftime('%d/%m/%Y') if p.data_coleta else 'Não informada' }}</small>
+                        <small class="d-block text-secondary"><b>Entrega:</b> {{ p.data_entrega.strftime('%d/%m/%Y') if p.data_entrega else 'Não informada' }}</small>
+                        <small class="d-block text-secondary"><b>Relato:</b> {{ p.observacao_ocorrencia or 'Não informado' }}</small>
+
+                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top kanban-card-actions">
+                            <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalCotacao('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                                <i class="fa-solid fa-calculator me-1"></i> Cotações ({{ p.cotacoes|length }})
+                            </button>
+                            <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
+                                <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
+                            </button>
+                            <button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalConfirmacaoEntrega('{{ p.id }}', '{{ p.numero_pedido_compra }}', true)">
+                                <i class="fa-solid fa-clipboard-check me-1"></i> Confirmar entrega
+                            </button>
+                            <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
-
 </div>
 
 <!-- MODAL COTAÇÕES -->
@@ -680,10 +762,10 @@ function formatarStatusPedido(status) {
     return statusFormatado[status] || status || '-';
 }
 
-let pedidoConfirmacaoEntregaId = null;
+window.pedidoConfirmacaoEntregaId = null;
 
 function abrirModalConfirmacaoEntrega(pedidoId, numeroPedido, resolverSinistro = false) {
-    pedidoConfirmacaoEntregaId = pedidoId;
+    window.pedidoConfirmacaoEntregaId = pedidoId;
     document.getElementById('confirmacaoEntregaPedidoNum').innerText = numeroPedido;
     document.getElementById('formularioOcorrenciaEntrega').classList.add('d-none');
     document.getElementById('observacaoOcorrenciaEntrega').value = '';
@@ -723,7 +805,7 @@ function selecionarDecisaoEntrega(decisao) {
         return;
     }
 
-    fetch('/pedidos/' + pedidoConfirmacaoEntregaId + '/confirmar-entrega', {
+    fetch('/pedidos/' + window.pedidoConfirmacaoEntregaId + '/confirmar-entrega', {
         method: 'POST',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',

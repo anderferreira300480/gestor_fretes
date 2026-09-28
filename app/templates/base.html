@@ -24,10 +24,11 @@
 
         body {
             min-height: 100vh;
+            height: 100vh;
             background-color: var(--bg-body);
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
         /* Topbar Escura */
@@ -153,7 +154,105 @@
             margin-top: var(--topbar-height);
             margin-left: var(--sidebar-width);
             padding: 1.5rem;
-            min-height: calc(100vh - var(--topbar-height));
+            height: calc(100vh - var(--topbar-height));
+            overflow-x: hidden;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .kanban-shell {
+            height: 100%;
+            max-height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .kanban-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: rgba(244, 246, 249, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+            flex-shrink: 0;
+        }
+
+        .kanban-board {
+            flex: 1 1 auto;
+            min-height: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .kanban-column {
+            display: flex;
+            min-height: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .kanban-column .card-header {
+            flex-shrink: 0;
+        }
+
+        .kanban-column .card {
+            width: 100%;
+            min-height: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .kanban-column-body {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            min-height: 0;
+            height: 0;
+            max-height: 100%;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(148, 163, 184, 0.7) transparent;
+            scroll-behavior: smooth;
+            overscroll-behavior: contain;
+        }
+
+        .kanban-column-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .kanban-column-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .kanban-column-body::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.7);
+            border-radius: 999px;
+        }
+
+        .kanban-card-actions {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.35rem;
+        }
+
+        .kanban-card-actions .btn {
+            width: 100%;
+            min-width: 0;
+            min-height: 2rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            line-height: 1.15;
         }
     </style>
 </head>
@@ -292,6 +391,20 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const mainContent = doc.querySelector('main#conteudo-principal') || doc.querySelector('main') || doc.body;
+
+                // Mantém os estilos do fragmento carregado no head do documento para
+                // que o layout do dashboard e seus cards tenham regra de altura/scroll.
+                const fragmentStyles = Array.from(doc.querySelectorAll('style'));
+                fragmentStyles.forEach(styleNode => {
+                    const existing = Array.from(document.head.querySelectorAll('style[data-ajax-fragment]'))
+                        .find(el => el.textContent === styleNode.textContent);
+                    if (!existing) {
+                        const clone = document.createElement('style');
+                        clone.dataset.ajaxFragment = 'true';
+                        clone.textContent = styleNode.textContent;
+                        document.head.appendChild(clone);
+                    }
+                });
 
                 container.innerHTML = mainContent ? mainContent.innerHTML : html;
 

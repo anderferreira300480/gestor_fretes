@@ -1,5 +1,53 @@
 <!-- Formulario de criacao: carga, empresa, fornecedor e observacoes. -->
-<div class="card shadow-sm border-0">
+<style>
+    .novo-pedido-page {
+        font-size: 0.86rem;
+    }
+
+    .novo-pedido-page > .card-body {
+        padding: 1rem !important;
+    }
+
+    .novo-pedido-page .mb-4 {
+        margin-bottom: 0.85rem !important;
+    }
+
+    .novo-pedido-page .row.g-3 {
+        --bs-gutter-y: 0.5rem;
+    }
+
+    .novo-pedido-page h5 {
+        font-size: 0.98rem;
+        padding-bottom: 0.3rem !important;
+        margin-bottom: 0.6rem !important;
+    }
+
+    .novo-pedido-page .form-label {
+        margin-bottom: 0.2rem;
+    }
+
+    .novo-pedido-page .form-control,
+    .novo-pedido-page .form-select {
+        min-height: 2rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.84rem;
+    }
+
+    .novo-pedido-page textarea.form-control {
+        min-height: 3.5rem;
+    }
+
+    @media (max-width: 767.98px) {
+        .novo-pedido-page {
+            font-size: 0.9rem;
+        }
+
+        .novo-pedido-page > .card-body {
+            padding: 1rem !important;
+        }
+    }
+</style>
+<div class="card shadow-sm border-0 novo-pedido-page">
     <div class="card-header bg-white py-3">
         <h4 class="card-title mb-0 text-primary fw-bold">
             <i class="fa-solid fa-file-circle-plus me-2"></i>Novo Pedido de Frete
