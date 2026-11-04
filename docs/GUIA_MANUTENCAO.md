@@ -13,6 +13,25 @@ python run.py
 
 O `run.py` chama `create_app()` e inicia o servidor Flask em modo debug. O modo debug e util durante o desenvolvimento, mas nao deve ser usado em um servidor publico.
 
+### Envio de solicitacoes de cotacao
+
+O envio usa SMTP. Configure as variaveis abaixo no ambiente antes de iniciar a aplicacao; nao grave usuario ou senha no codigo ou no repositorio:
+
+```powershell
+$env:SMTP_HOST = 'smtp.seuprovedor.com'
+$env:SMTP_PORT = '587'
+$env:SMTP_USERNAME = 'usuario@empresa.com'
+$env:SMTP_PASSWORD = 'senha-ou-token-do-provedor'
+$env:SMTP_SENDER = 'usuario@empresa.com'
+$env:SMTP_USE_TLS = 'true'
+$env:SMTP_USE_SSL = 'false'
+python run.py
+```
+
+Use TLS com a porta 587 ou SSL com a porta 465, conforme o provedor. `SMTP_SENDER` pode ser omitido quando for igual a `SMTP_USERNAME`. Sem SMTP configurado, a aplicacao registra a falha na cotacao e permite tentar novamente.
+
+O e-mail inclui um link de resposta de uso unico, valido por 30 dias. Em ambiente local, o link usa o endereco que abriu a aplicacao. Em producao, defina `PUBLIC_BASE_URL` com a URL HTTPS publica, por exemplo `https://fretes.empresa.com`, para que a transportadora consiga acessar o formulario.
+
 ## 2. Mapa dos arquivos
 
 - `run.py`: ponto de entrada do servidor local.
@@ -61,6 +80,10 @@ A atualizacao de schema e intencionalmente simples: ela somente adiciona colunas
 
 Uma cotacao pertence a um pedido e pode apontar para uma transportadora. `aprovada=True` identifica a cotacao vencedora no fluxo atual. `observacao` guarda a justificativa quando uma cotacao mais cara e escolhida.
 
+`status` acompanha o envio da solicitacao (`pendente_envio`, `enviada`, `erro_envio`) ou indica uma proposta ja recebida (`respondida`). O valor e prazo ficam vazios/zerados na solicitacao; somente cotacoes `respondida` podem ser aprovadas. O envio inclui o anexo mais recente do pedido com tipo `Pedido de Compra`. As respostas pelo link guardam observacao e data separadas da justificativa de aprovacao; o token fica armazenado como hash e e invalidado ao responder.
+
+Cotacoes respondidas podem ter valor, prazo e observacao corrigidos enquanto o pedido estiver em `em_cotacao` e ainda nao houver vencedora. A justificativa de aprovacao e preservada separadamente.
+
 ### Anexo
 
 `Anexo` guarda os metadados no banco. O arquivo real fica em `app/static/uploads`. A exclusao em cascade remove o registro, mas nao remove automaticamente o arquivo fisico.
@@ -84,6 +107,8 @@ em_cotacao -> aguardando_coleta -> em_transito -> entregue
 - `entregue`: entrega confirmada.
 - `ocorrencia`: problema registrado. O pedido pode ser confirmado como entregue ou ter uma nova data de entrega informada; se a nova data for posterior a anterior, ele retorna para `em_transito`.
 
+Pedidos entregues ha pelo menos cinco dias desde `data_confirmacao_entrega` recebem `arquivado_em` e deixam de aparecer no Kanban. O status continua `entregue` e o registro nao e excluido. A verificacao acontece ao abrir o Kanban ou `/relatorios`; nao ha tarefa em segundo plano, portanto um pedido que passe do prazo enquanto a aplicacao estiver sem acessos sera arquivado na proxima visita a uma dessas telas.
+
 A promocao para `em_transito` nao ocorre em tarefa agendada. Se ninguem acessar o dashboard, o status permanece temporariamente em `aguardando_coleta`.
 
 ## 6. Endpoints principais
@@ -92,6 +117,7 @@ A promocao para `em_transito` nao ocorre em tarefa agendada. Se ninguem acessar 
 
 - `GET /` e `GET /kanban`: renderizam o Kanban.
 - `GET /kanban?empresa_id=<id>`: filtra os pedidos de uma empresa.
+- `GET /relatorios`: pesquisa pedidos arquivados por numero do pedido, empresa, fornecedor ou transportadora e filtra pelo periodo de entrega confirmada.
 
 ### Cadastros
 
@@ -109,6 +135,9 @@ As rotas POST aceitam formulario normal e, quando identificadas como AJAX/JSON, 
 - `GET|POST /pedidos/novo`: exibe ou cria pedido com status `em_cotacao`.
 - `POST /pedidos/salvar`: alias usado por formularios antigos.
 - `POST /pedidos/<id>/incluir_cotacao`: cria proposta.
+- `POST /pedidos/cotacoes/<id>/enviar`: envia a solicitacao e o Pedido de Compra para o e-mail cadastrado da transportadora.
+- `POST /pedidos/cotacoes/<id>/editar`: corrige valor, prazo e observacao antes da selecao da vencedora.
+- `GET|POST /pedidos/cotacoes/responder/<token>`: exibe e recebe a resposta de uma solicitacao enviada.
 - `GET /pedidos/<id>/cotacoes`: retorna dados para o modal.
 - `POST /pedidos/cotacoes/<id>/selecionar_vencedora`: aprova proposta e exige justificativa se ela nao for a menor.
 - `POST /pedidos/<id>/datas`: salva coleta e entrega.

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h3 class="fw-bold m-0 text-dark">Pedidos arquivados</h3>
+            <p class="text-muted small mb-0">Entregas confirmadas há mais de cinco dias, preservadas para consulta.</p>
+        </div>
+        <span class="badge bg-secondary">{{ pagina.total }} registro(s)</span>
+    </div>
+
+    <form method="get" action="{{ url_for('main.relatorios') }}" class="row g-2 align-items-end mb-3">
+        <div class="col-12 col-lg-5">
+            <label for="buscaArquivados" class="form-label small fw-semibold">Pedido, empresa, fornecedor ou transportadora</label>
+            <input id="buscaArquivados" name="busca" type="search" class="form-control" value="{{ busca }}" placeholder="Digite para pesquisar">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label for="dataInicioArquivados" class="form-label small fw-semibold">Entrega de</label>
+            <input id="dataInicioArquivados" name="data_inicio" type="date" class="form-control" value="{{ data_inicio }}">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label for="dataFimArquivados" class="form-label small fw-semibold">Entrega até</label>
+            <input id="dataFimArquivados" name="data_fim" type="date" class="form-control" value="{{ data_fim }}">
+        </div>
+        <div class="col-8 col-lg-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-grow-1">
+                <i class="fa-solid fa-magnifying-glass me-1"></i> Filtrar
+            </button>
+            <a href="{{ url_for('main.relatorios') }}" class="btn btn-outline-secondary" title="Limpar filtros" aria-label="Limpar filtros">
+                <i class="fa-solid fa-xmark"></i>
+            </a>
+        </div>
+    </form>
+
+    {% if erro_filtro %}
+        <div class="alert alert-warning" role="alert">{{ erro_filtro }}</div>
+    {% endif %}
+
+    <div class="table-responsive bg-white border rounded-2">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Pedido de compra</th>
+                    <th>Empresa</th>
+                    <th>Fornecedor</th>
+                    <th>Transportadora vencedora</th>
+                    <th class="text-end">Frete</th>
+                    <th>Entrega confirmada</th>
+                    <th>Arquivado em</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pagina.items %}
+                    {% set cotacao = namespace(vencedora=none) %}
+                    {% for item in pedido.cotacoes %}
+                        {% if item.aprovada %}
+                            {% set cotacao.vencedora = item %}
+                        {% endif %}
+                    {% endfor %}
+                    <tr>
+                        <td class="fw-semibold">{{ pedido.numero_pedido_compra }}</td>
+                        <td>{{ pedido.empresa.razao_social if pedido.empresa else '-' }}</td>
+                        <td>{{ pedido.fornecedor.razao_social if pedido.fornecedor else '-' }}</td>
+                        <td>{{ cotacao.vencedora.transportadora.razao_social if cotacao.vencedora and cotacao.vencedora.transportadora else '-' }}</td>
+                        <td class="text-end">{{ 'R$ %.2f'|format(cotacao.vencedora.valor_frete) if cotacao.vencedora else '-' }}</td>
+                        <td>{{ pedido.data_confirmacao_entrega.strftime('%d/%m/%Y %H:%M') if pedido.data_confirmacao_entrega else '-' }}</td>
+                        <td>{{ pedido.arquivado_em.strftime('%d/%m/%Y %H:%M') if pedido.arquivado_em else '-' }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">Nenhum pedido arquivado encontrado.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if pagina.pages > 1 %}
+        <nav class="d-flex justify-content-between align-items-center mt-3" aria-label="Paginação dos pedidos arquivados">
+            <span class="small text-muted">Página {{ pagina.page }} de {{ pagina.pages }}</span>
+            <div class="btn-group">
+                {% if pagina.has_prev %}
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('main.relatorios', busca=busca, data_inicio=data_inicio, data_fim=data_fim, page=pagina.prev_num) }}">
+                        <i class="fa-solid fa-chevron-left me-1"></i> Anterior
+                    </a>
+                {% endif %}
+                {% if pagina.has_next %}
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('main.relatorios', busca=busca, data_inicio=data_inicio, data_fim=data_fim, page=pagina.next_num) }}">
+                        Próxima <i class="fa-solid fa-chevron-right ms-1"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

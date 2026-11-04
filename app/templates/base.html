@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GRUPO FRETELOG</title>
+    <title>GRUPO COPELMI - GESTÃO DE FRETES - COMPRAS</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -262,7 +262,7 @@
     <header class="topbar-header">
         <a href="/kanban" class="topbar-brand" onclick="carregarTela('/kanban'); return false;">
             <i class="bi bi-list fs-4 text-white"></i>
-            <span>GRUPO FRETELOG</span>
+            <span>GRUPO COPELMI - GESTÃO FRETES - COMPRAS</span>
         </a>
         
         <div class="topbar-user">
@@ -324,7 +324,7 @@
 
             <!-- Relatórios -->
             <li class="nav-item">
-                <a class="nav-link" href="/relatorios" id="link-relatorios" onclick="carregarTela('/relatorios'); fecharMenuCadastros(); return false;">
+                <a class="nav-link{% if tela_ativa == 'relatorios' %} active{% endif %}" href="/relatorios" id="link-relatorios" onclick="carregarTela('/relatorios'); fecharMenuCadastros(); return false;">
                     <i class="bi bi-graph-up-arrow"></i>
                     <span>Relatórios</span>
                 </a>
@@ -430,7 +430,7 @@
                     document.getElementById('link-novo-pedido')?.classList.add('active');
                 } else if (url.includes('empresa') || url.includes('fornecedor') || url.includes('transportadora')) {
                     document.getElementById('btn-toggle-cadastros')?.classList.add('active');
-                } else if (url === '/relatorios') {
+                } else if (url === '/relatorios' || url.startsWith('/relatorios?')) {
                     document.getElementById('link-relatorios')?.classList.add('active');
                 }
             })

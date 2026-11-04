@@ -76,6 +76,7 @@ class Pedido(db.Model):
     data_coleta = db.Column(db.Date, nullable=True)
     data_entrega = db.Column(db.Date, nullable=True)
     data_confirmacao_entrega = db.Column(db.DateTime, nullable=True)
+    arquivado_em = db.Column(db.DateTime, nullable=True)
     observacao_ocorrencia = db.Column(db.Text, nullable=True)
     
     empresa_id = db.Column(db.Integer, db.ForeignKey('empresas.id'), nullable=True)
@@ -94,6 +95,13 @@ class CotacaoFrete(db.Model):
     prazo_dias = db.Column(db.Integer, nullable=True)
     aprovada = db.Column(db.Boolean, default=False)
     observacao = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(30), nullable=False, default='respondida')
+    data_envio = db.Column(db.DateTime, nullable=True)
+    erro_envio = db.Column(db.Text, nullable=True)
+    observacao_resposta = db.Column(db.Text, nullable=True)
+    data_resposta = db.Column(db.DateTime, nullable=True)
+    token_resposta_hash = db.Column(db.String(64), nullable=True, unique=True)
+    token_expira_em = db.Column(db.DateTime, nullable=True)
     
     pedido_id = db.Column(db.Integer, db.ForeignKey('pedidos.id'), nullable=False)
     transportadora_id = db.Column(db.Integer, db.ForeignKey('transportadoras.id'), nullable=True)

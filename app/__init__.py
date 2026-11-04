@@ -4,6 +4,7 @@ Este módulo concentra a criação do objeto Flask, a configuração do banco,
 o registro das rotas e a preparação inicial do schema local.
 """
 
+import os
 from flask import Flask
 from app.database import db
 from sqlalchemy import text
@@ -32,6 +33,23 @@ def _atualizar_schema():
     if 'observacao' not in colunas_cotacoes:
         db.session.execute(text('ALTER TABLE cotacoes ADD COLUMN observacao TEXT'))
 
+    novos_campos_cotacao = {
+        'status': "VARCHAR(30) NOT NULL DEFAULT 'respondida'",
+        'data_envio': 'DATETIME',
+        'erro_envio': 'TEXT',
+        'observacao_resposta': 'TEXT',
+        'data_resposta': 'DATETIME',
+        'token_resposta_hash': 'VARCHAR(64)',
+        'token_expira_em': 'DATETIME'
+    }
+    for coluna, tipo in novos_campos_cotacao.items():
+        if coluna not in colunas_cotacoes:
+            db.session.execute(text(f'ALTER TABLE cotacoes ADD COLUMN {coluna} {tipo}'))
+    db.session.execute(text(
+        'CREATE UNIQUE INDEX IF NOT EXISTS uq_cotacoes_token_resposta_hash '
+        'ON cotacoes (token_resposta_hash)'
+    ))
+
     colunas_pedidos = {
         coluna['name']
         for coluna in db.session.execute(text('PRAGMA table_info(pedidos)')).mappings()
@@ -44,6 +62,7 @@ def _atualizar_schema():
         'dim_comprimento': 'FLOAT',
         'observacoes': 'TEXT',
         'data_confirmacao_entrega': 'DATETIME',
+        'arquivado_em': 'DATETIME',
         'observacao_ocorrencia': 'TEXT'
     }
     for coluna, tipo in novos_campos_pedido.items():
@@ -58,6 +77,14 @@ def create_app():
     app.config['SECRET_KEY'] = 'sua_chave_secreta'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gestor.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SMTP_HOST'] = os.environ.get('SMTP_HOST')
+    app.config['SMTP_PORT'] = int(os.environ.get('SMTP_PORT', '587'))
+    app.config['SMTP_USERNAME'] = os.environ.get('SMTP_USERNAME')
+    app.config['SMTP_PASSWORD'] = os.environ.get('SMTP_PASSWORD')
+    app.config['SMTP_SENDER'] = os.environ.get('SMTP_SENDER') or app.config['SMTP_USERNAME']
+    app.config['SMTP_USE_TLS'] = os.environ.get('SMTP_USE_TLS', 'true').lower() == 'true'
+    app.config['SMTP_USE_SSL'] = os.environ.get('SMTP_USE_SSL', 'false').lower() == 'true'
+    app.config['PUBLIC_BASE_URL'] = os.environ.get('PUBLIC_BASE_URL')
 
     db.init_app(app)
 

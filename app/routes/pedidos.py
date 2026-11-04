@@ -1,11 +1,20 @@
 """Rotas do ciclo de vida dos pedidos, cotações e anexos."""
 
+import hashlib
 import os
-from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, current_app
+import secrets
+from datetime import datetime, timedelta
+from decimal import Decimal, InvalidOperation
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, current_app, make_response
 from werkzeug.utils import secure_filename
 from app.database import db
-from app.models import Empresa, Fornecedor, Pedido, CotacaoFrete, Anexo
+from app.models import Empresa, Fornecedor, Pedido, CotacaoFrete, Anexo, Transportadora
+from app.email_service import (
+    EmailAttachmentError,
+    EmailConfigurationError,
+    EmailDeliveryError,
+    enviar_solicitacao_cotacao
+)
 
 pedidos_bp = Blueprint('pedidos', __name__, url_prefix='/pedidos')
 
@@ -141,7 +150,12 @@ def listar_cotacoes(pedido_id):
             'valor_frete': c.valor_frete,
             'prazo_dias': c.prazo_dias or 0,
             'aprovada': c.aprovada,
-            'observacao': c.observacao or ''
+            'observacao': c.observacao or '',
+            'status': c.status,
+            'data_envio': c.data_envio.isoformat() if c.data_envio else '',
+            'erro_envio': c.erro_envio or '',
+            'observacao_resposta': c.observacao_resposta or '',
+            'data_resposta': c.data_resposta.isoformat() if c.data_resposta else ''
         })
 
     return jsonify({
@@ -181,16 +195,29 @@ def incluir_cotacao(pedido_id):
         flash('Não é possível adicionar novas cotações para este pedido pois a cotação já foi encerrada.', 'warning')
         return redirect(url_for('main.index'))
 
-    transportadora_id = request.form.get('transportadora_id')
-    valor_frete = request.form.get('valor_frete')
+    transportadora_id = request.form.get('transportadora_id', type=int)
+    valor_frete_texto = (request.form.get('valor_frete') or '').strip()
     prazo_dias = request.form.get('prazo_dias')
+
+    transportadora = db.session.get(Transportadora, transportadora_id) if transportadora_id else None
+    if not transportadora:
+        return jsonify({'sucesso': False, 'mensagem': 'Selecione uma transportadora válida.'}), 400
+
+    try:
+        valor_frete = float(valor_frete_texto) if valor_frete_texto else 0.0
+        prazo_dias_numero = int(prazo_dias) if prazo_dias else None
+    except ValueError:
+        return jsonify({'sucesso': False, 'mensagem': 'Informe um valor e prazo válidos.'}), 400
+    if valor_frete < 0 or (prazo_dias_numero is not None and prazo_dias_numero < 0):
+        return jsonify({'sucesso': False, 'mensagem': 'Valor e prazo não podem ser negativos.'}), 400
 
     nova_cotacao = CotacaoFrete(
         pedido_id=pedido_id,
-        transportadora_id=transportadora_id if transportadora_id else None,
-        valor_frete=float(valor_frete),
-        prazo_dias=int(prazo_dias) if prazo_dias else None,
-        aprovada=False
+        transportadora_id=transportadora.id,
+        valor_frete=valor_frete,
+        prazo_dias=prazo_dias_numero,
+        aprovada=False,
+        status='respondida' if valor_frete_texto else 'pendente_envio'
     )
     db.session.add(nova_cotacao)
     db.session.commit()
@@ -198,12 +225,157 @@ def incluir_cotacao(pedido_id):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return jsonify({
             'sucesso': True,
+            'mensagem': 'Cotação adicionada com sucesso.' if valor_frete_texto else 'Solicitação de cotação adicionada.',
             'pedido_id': pedido.id,
             'cotacoes_count': CotacaoFrete.query.filter_by(pedido_id=pedido.id).count()
         })
 
     flash('Cotação lançada com sucesso!', 'success')
     return redirect(url_for('main.index'))
+
+
+@pedidos_bp.route('/cotacoes/<int:cotacao_id>/enviar', methods=['POST'])
+def enviar_cotacao(cotacao_id):
+    """Envia a solicitação da cotação e o Pedido de Compra por e-mail."""
+    cotacao = CotacaoFrete.query.get_or_404(cotacao_id)
+    pedido = cotacao.pedido
+
+    if pedido.status != 'em_cotacao':
+        return jsonify({'sucesso': False, 'mensagem': 'O pedido não está mais na etapa de cotação.'}), 400
+    if cotacao.status not in ('pendente_envio', 'erro_envio'):
+        return jsonify({'sucesso': False, 'mensagem': 'Esta solicitação já foi enviada ou não está pendente.'}), 400
+
+    token = secrets.token_urlsafe(32)
+    cotacao.token_resposta_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+    cotacao.token_expira_em = datetime.utcnow() + timedelta(days=30)
+    db.session.commit()
+    base_url = (current_app.config.get('PUBLIC_BASE_URL') or request.url_root).rstrip('/')
+    url_resposta = f'{base_url}{url_for("pedidos.responder_cotacao", token=token)}'
+
+    try:
+        enviar_solicitacao_cotacao(cotacao, url_resposta)
+    except (EmailAttachmentError, EmailConfigurationError, EmailDeliveryError) as erro:
+        cotacao.status = 'erro_envio'
+        cotacao.erro_envio = str(erro)
+        db.session.commit()
+        return jsonify({'sucesso': False, 'mensagem': cotacao.erro_envio}), 400
+
+    cotacao.status = 'enviada'
+    cotacao.data_envio = datetime.utcnow()
+    cotacao.erro_envio = None
+    db.session.commit()
+
+    return jsonify({'sucesso': True, 'mensagem': 'Solicitação enviada por e-mail.'})
+
+
+@pedidos_bp.route('/cotacoes/<int:cotacao_id>/editar', methods=['POST'])
+def editar_cotacao(cotacao_id):
+    """Atualiza uma proposta respondida enquanto o pedido ainda está em cotação."""
+    cotacao = CotacaoFrete.query.get_or_404(cotacao_id)
+    pedido = cotacao.pedido
+
+    if pedido.status != 'em_cotacao' or cotacao.aprovada:
+        return jsonify({
+            'sucesso': False,
+            'mensagem': 'Só é possível editar cotações antes de selecionar a vencedora.'
+        }), 400
+    if cotacao.status != 'respondida':
+        return jsonify({
+            'sucesso': False,
+            'mensagem': 'Somente cotações respondidas podem ser editadas.'
+        }), 400
+
+    dados = request.get_json(silent=True) or request.form
+    try:
+        valor_frete = Decimal(str(dados.get('valor_frete') or '').strip())
+        prazo_dias = int(str(dados.get('prazo_dias') or '').strip())
+    except (InvalidOperation, ValueError):
+        return jsonify({'sucesso': False, 'mensagem': 'Informe um valor e prazo válidos.'}), 400
+
+    if not valor_frete.is_finite() or valor_frete <= 0:
+        return jsonify({'sucesso': False, 'mensagem': 'O valor do frete deve ser maior que zero.'}), 400
+    if prazo_dias < 1:
+        return jsonify({'sucesso': False, 'mensagem': 'O prazo deve ser de pelo menos 1 dia.'}), 400
+
+    observacao_resposta = str(dados.get('observacao') or '').strip()
+    if len(observacao_resposta) > 2000:
+        return jsonify({'sucesso': False, 'mensagem': 'A observação deve ter no máximo 2.000 caracteres.'}), 400
+
+    cotacao.valor_frete = float(valor_frete)
+    cotacao.prazo_dias = prazo_dias
+    cotacao.observacao_resposta = observacao_resposta or None
+    db.session.commit()
+
+    return jsonify({'sucesso': True, 'mensagem': 'Cotação atualizada com sucesso.'})
+
+
+def _renderizar_pagina_resposta(estado, status_code=200, **contexto):
+    resposta = make_response(render_template('cotacoes/responder.html', estado=estado, **contexto))
+    resposta.status_code = status_code
+    resposta.headers['Cache-Control'] = 'no-store'
+    resposta.headers['Referrer-Policy'] = 'no-referrer'
+    resposta.headers['X-Robots-Tag'] = 'noindex, nofollow'
+    return resposta
+
+
+@pedidos_bp.route('/cotacoes/responder/<token>', methods=['GET', 'POST'])
+def responder_cotacao(token):
+    """Recebe a proposta da transportadora pelo link enviado por e-mail."""
+    token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+    cotacao = CotacaoFrete.query.filter_by(token_resposta_hash=token_hash).first()
+    agora = datetime.utcnow()
+
+    if (
+        not cotacao
+        or cotacao.status != 'enviada'
+        or not cotacao.token_expira_em
+        or cotacao.token_expira_em <= agora
+    ):
+        return _renderizar_pagina_resposta('invalido', 410)
+
+    if request.method == 'POST':
+        try:
+            valor_frete = Decimal((request.form.get('valor_frete') or '').strip())
+            prazo_dias = int(request.form.get('prazo_dias', ''))
+        except (InvalidOperation, ValueError):
+            valor_frete = Decimal('0')
+            prazo_dias = 0
+            erro = 'Informe um valor de frete e um prazo válidos.'
+        else:
+            erro = ''
+            if not valor_frete.is_finite() or valor_frete <= 0:
+                erro = 'O valor do frete deve ser maior que zero.'
+            elif prazo_dias < 1:
+                erro = 'O prazo deve ser de pelo menos 1 dia.'
+
+        observacao_resposta = (request.form.get('observacao') or '').strip()
+        if len(observacao_resposta) > 2000:
+            erro = 'A observação deve ter no máximo 2.000 caracteres.'
+
+        if erro:
+            return _renderizar_pagina_resposta(
+                'formulario',
+                cotacao=cotacao,
+                erro=erro,
+                valor_frete=request.form.get('valor_frete', ''),
+                prazo_dias=request.form.get('prazo_dias', ''),
+                observacao=observacao_resposta
+            )
+
+        cotacao.valor_frete = float(valor_frete)
+        cotacao.prazo_dias = prazo_dias
+        cotacao.observacao_resposta = observacao_resposta or None
+        cotacao.data_resposta = agora
+        cotacao.status = 'respondida'
+        cotacao.token_resposta_hash = None
+        cotacao.token_expira_em = None
+        db.session.commit()
+        return _renderizar_pagina_resposta(
+            'sucesso',
+            numero_pedido=cotacao.pedido.numero_pedido_compra
+        )
+
+    return _renderizar_pagina_resposta('formulario', cotacao=cotacao)
 
 
 @pedidos_bp.route('/cotacoes/<int:cotacao_id>/excluir', methods=['POST'])
@@ -233,10 +405,15 @@ def selecionar_vencedora(cotacao_id):
     cotacao = CotacaoFrete.query.get_or_404(cotacao_id)
     pedido = Pedido.query.get_or_404(cotacao.pedido_id)
 
+    if cotacao.status != 'respondida':
+        mensagem = 'Somente cotações respondidas podem ser selecionadas como vencedoras.'
+        return jsonify({'sucesso': False, 'mensagem': mensagem}), 400
+
     dados = request.get_json(silent=True) or request.form
     justificativa = (dados.get('justificativa') or '').strip()
     menor_valor = db.session.query(db.func.min(CotacaoFrete.valor_frete)).filter_by(
-        pedido_id=pedido.id
+        pedido_id=pedido.id,
+        status='respondida'
     ).scalar()
 
     if menor_valor is not None and cotacao.valor_frete > menor_valor and not justificativa:

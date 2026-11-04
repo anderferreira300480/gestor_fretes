@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>Responder cotação | Grupo Copelmi</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: "Segoe UI", sans-serif;
+            color: #172b3a;
+            background: #f2f5f4;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 32px 16px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(145deg, #edf3f2 0%, #f7f8f5 58%, #e8f1f2 100%);
+        }
+
+        main {
+            width: min(100%, 520px);
+            padding: 32px;
+            border: 1px solid #d8e1e2;
+            border-top: 4px solid #087e8b;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 18px 48px rgb(23 43 58 / 9%);
+        }
+
+        .brand {
+            margin: 0 0 28px;
+            color: #087e8b;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: 26px;
+            line-height: 1.2;
+        }
+
+        .intro,
+        .message {
+            color: #52636e;
+            line-height: 1.55;
+        }
+
+        .intro {
+            margin: 0 0 24px;
+        }
+
+        .field {
+            margin: 0 0 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 14px;
+            font-weight: 650;
+        }
+
+        input,
+        textarea {
+            display: block;
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 12px;
+            border: 1px solid #b9c7cb;
+            border-radius: 5px;
+            background: #fff;
+            color: #172b3a;
+            font: inherit;
+        }
+
+        textarea {
+            min-height: 96px;
+            resize: vertical;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #087e8b;
+            outline: 3px solid rgb(8 126 139 / 16%);
+        }
+
+        button {
+            width: 100%;
+            min-height: 46px;
+            margin-top: 4px;
+            border: 0;
+            border-radius: 5px;
+            background: #087e8b;
+            color: #fff;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #066b76;
+        }
+
+        .alert {
+            margin: 0 0 20px;
+            padding: 12px 14px;
+            border-radius: 5px;
+            background: #fff2e8;
+            color: #873c16;
+            line-height: 1.45;
+        }
+
+        .success-mark {
+            display: grid;
+            width: 44px;
+            height: 44px;
+            margin-bottom: 18px;
+            place-items: center;
+            border-radius: 50%;
+            background: #dff3e9;
+            color: #16764a;
+            font-size: 23px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 480px) {
+            main {
+                padding: 25px 20px;
+            }
+
+            h1 {
+                font-size: 23px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <p class="brand">GRUPO FRETELOG <span aria-hidden="true">/</span> COTAÇÕES</p>
+
+        {% if estado == 'invalido' %}
+            <h1>Link indisponível</h1>
+            <p class="message">Este link expirou, já foi utilizado ou não é válido. Solicite à empresa o reenvio da cotação.</p>
+        {% elif estado == 'sucesso' %}
+            <div class="success-mark" aria-hidden="true">✓</div>
+            <h1>Proposta recebida</h1>
+            <p class="message">Sua cotação para o pedido {{ numero_pedido }} foi registrada. Obrigado pelo retorno.</p>
+        {% else %}
+            <h1>Responder cotação</h1>
+            <p class="intro">
+                Pedido <strong>{{ cotacao.pedido.numero_pedido_compra }}</strong>
+                para <strong>{{ cotacao.transportadora.razao_social if cotacao.transportadora else 'Transportadora' }}</strong>.
+                Informe o valor e o prazo da proposta.
+            </p>
+
+            {% if erro %}
+                <div class="alert" role="alert">{{ erro }}</div>
+            {% endif %}
+
+            <form method="post">
+                <div class="field">
+                    <label for="valor_frete">Valor do frete (R$)</label>
+                    <input id="valor_frete" name="valor_frete" type="number" min="0.01" step="0.01" inputmode="decimal" required value="{{ valor_frete|default('', true) }}">
+                </div>
+                <div class="field">
+                    <label for="prazo_dias">Prazo de entrega (dias)</label>
+                    <input id="prazo_dias" name="prazo_dias" type="number" min="1" step="1" required value="{{ prazo_dias|default('', true) }}">
+                </div>
+                <div class="field">
+                    <label for="observacao">Observações <span>(opcional)</span></label>
+                    <textarea id="observacao" name="observacao" maxlength="2000">{{ observacao|default('', true) }}</textarea>
+                </div>
+                <button type="submit">Enviar proposta</button>
+            </form>
+        {% endif %}
+    </main>
+</body>
+</html>
