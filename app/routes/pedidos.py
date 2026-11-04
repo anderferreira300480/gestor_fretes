@@ -3,7 +3,7 @@
 import hashlib
 import os
 import secrets
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, current_app, make_response
 from werkzeug.utils import secure_filename
@@ -13,6 +13,7 @@ from app.email_service import (
     EmailAttachmentError,
     EmailConfigurationError,
     EmailDeliveryError,
+    enviar_aprovacao_cotacao,
     enviar_solicitacao_cotacao
 )
 
@@ -397,11 +398,7 @@ def excluir_cotacao(cotacao_id):
 # 3. Selecionar Cotação Vencedora e Atualizar Status do Pedido para 'aguardando_coleta'
 @pedidos_bp.route('/cotacoes/<int:cotacao_id>/selecionar_vencedora', methods=['POST'])
 def selecionar_vencedora(cotacao_id):
-    """Aprova uma cotação e move o pedido para aguardando coleta.
-
-    Quando a proposta escolhida não é a mais barata, a justificativa enviada
-    pelo usuário torna-se obrigatória e é armazenada na própria cotação.
-    """
+    """Aprova uma cotação, envia o e-mail de aprovação e move o pedido para aguardando coleta."""
     cotacao = CotacaoFrete.query.get_or_404(cotacao_id)
     pedido = Pedido.query.get_or_404(cotacao.pedido_id)
 
@@ -411,6 +408,9 @@ def selecionar_vencedora(cotacao_id):
 
     dados = request.get_json(silent=True) or request.form
     justificativa = (dados.get('justificativa') or '').strip()
+    nome_contato_fornecedor = (dados.get('nome_contato_fornecedor') or '').strip()
+    email_fornecedor = (dados.get('email_fornecedor') or '').strip()
+    telefone_fornecedor = (dados.get('telefone_fornecedor') or '').strip()
     menor_valor = db.session.query(db.func.min(CotacaoFrete.valor_frete)).filter_by(
         pedido_id=pedido.id,
         status='respondida'
@@ -423,24 +423,122 @@ def selecionar_vencedora(cotacao_id):
             'solicitar_justificativa': True,
             'mensagem': mensagem
         }), 400
+    if email_fornecedor and '@' not in email_fornecedor:
+        return jsonify({'sucesso': False, 'mensagem': 'Informe um e-mail do fornecedor válido.'}), 400
 
-    # Desmarca qualquer outra cotação vinculada a este pedido
-    CotacaoFrete.query.filter_by(pedido_id=pedido.id).update({'aprovada': False})
+    status_anterior = pedido.status
+    try:
+        CotacaoFrete.query.filter_by(pedido_id=pedido.id).update({'aprovada': False})
+        cotacao.aprovada = True
+        cotacao.observacao = justificativa or None
+        cotacao.status = 'aprovada'
+        pedido.nome_contato_fornecedor = nome_contato_fornecedor or pedido.nome_contato_fornecedor
+        pedido.email_fornecedor = email_fornecedor or pedido.email_fornecedor
+        pedido.telefone_fornecedor = telefone_fornecedor or pedido.telefone_fornecedor
+        pedido.status = 'aguardando_coleta'
 
-    # Define esta cotação como aprovada/vencedora
-    cotacao.aprovada = True
-    cotacao.observacao = justificativa or None
+        token = secrets.token_urlsafe(32)
+        cotacao.token_aprovacao_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+        cotacao.token_aprovacao_expira_em = datetime.utcnow() + timedelta(days=30)
+        db.session.commit()
 
-    # Move o card no Kanban alterando o status do pedido para 'aguardando_coleta'
-    pedido.status = 'aguardando_coleta'
-
-    db.session.commit()
+        base_url = (current_app.config.get('PUBLIC_BASE_URL') or request.url_root).rstrip('/')
+        url_resposta = f'{base_url}{url_for("pedidos.responder_aprovacao", token=token)}'
+        enviar_aprovacao_cotacao(cotacao, url_resposta, {
+            'nome_contato_fornecedor': nome_contato_fornecedor,
+            'email_fornecedor': email_fornecedor,
+            'telefone_fornecedor': telefone_fornecedor
+        })
+    except (EmailConfigurationError, EmailDeliveryError, EmailAttachmentError) as erro:
+        cotacao.aprovada = False
+        cotacao.observacao = None
+        cotacao.status = 'respondida'
+        cotacao.token_aprovacao_hash = None
+        cotacao.token_aprovacao_expira_em = None
+        pedido.status = status_anterior
+        db.session.commit()
+        return jsonify({'sucesso': False, 'mensagem': str(erro)}), 400
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
-        return jsonify({'sucesso': True, 'mensagem': 'Cotação definida como vencedora com sucesso!'})
+        return jsonify({'sucesso': True, 'mensagem': 'Cotação aprovada e e-mail enviado com sucesso.'})
 
-    flash('Cotação vencedora selecionada! Pedido movido para Aguardando Coleta.', 'success')
+    flash('Cotação vencedora selecionada! O transportador foi informado e deve confirmar as datas de coleta e entrega.', 'success')
     return redirect(url_for('main.index'))
+
+
+def _renderizar_pagina_aprovacao(estado, status_code=200, **contexto):
+    resposta = make_response(render_template('cotacoes/responder_aprovacao.html', estado=estado, **contexto))
+    resposta.status_code = status_code
+    resposta.headers['Cache-Control'] = 'no-store'
+    resposta.headers['Referrer-Policy'] = 'no-referrer'
+    resposta.headers['X-Robots-Tag'] = 'noindex, nofollow'
+    return resposta
+
+
+@pedidos_bp.route('/cotacoes/aprovadas/responder/<token>', methods=['GET', 'POST'])
+def responder_aprovacao(token):
+    """Recebe as datas previstas de coleta e entrega informadas pela transportadora após a aprovação."""
+    token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+    cotacao = CotacaoFrete.query.filter_by(token_aprovacao_hash=token_hash).first()
+    agora = datetime.utcnow()
+
+    if (
+        not cotacao
+        or cotacao.status != 'aprovada'
+        or not cotacao.token_aprovacao_expira_em
+        or cotacao.token_aprovacao_expira_em <= agora
+    ):
+        return _renderizar_pagina_aprovacao('invalido', 410)
+
+    if request.method == 'POST':
+        try:
+            data_coleta = datetime.strptime(request.form.get('data_coleta', '').strip(), '%Y-%m-%d').date()
+            data_entrega = datetime.strptime(request.form.get('data_entrega', '').strip(), '%Y-%m-%d').date()
+        except ValueError:
+            return _renderizar_pagina_aprovacao(
+                'formulario',
+                cotacao=cotacao,
+                erro='Informe datas válidas para coleta e entrega.',
+                data_coleta=request.form.get('data_coleta', ''),
+                data_entrega=request.form.get('data_entrega', '')
+            )
+
+        if data_entrega < data_coleta:
+            return _renderizar_pagina_aprovacao(
+                'formulario',
+                cotacao=cotacao,
+                erro='A data de entrega não pode ser anterior à data de coleta.',
+                data_coleta=request.form.get('data_coleta', ''),
+                data_entrega=request.form.get('data_entrega', '')
+            )
+
+        pedido = cotacao.pedido
+        pedido.data_coleta = data_coleta
+        pedido.data_entrega = data_entrega
+        pedido.status = 'em_transito' if data_coleta <= date.today() else 'aguardando_coleta'
+        cotacao.data_resposta_aprovacao = agora
+        cotacao.status = 'respondida'
+        cotacao.token_aprovacao_hash = None
+        cotacao.token_aprovacao_expira_em = None
+        db.session.commit()
+        return _renderizar_pagina_aprovacao('sucesso', numero_pedido=pedido.numero_pedido_compra)
+
+    return _renderizar_pagina_aprovacao('formulario', cotacao=cotacao)
+
+
+@pedidos_bp.route('/<int:pedido_id>/confirmar-coleta', methods=['POST'])
+def confirmar_coleta(pedido_id):
+    """Move manualmente um pedido para em_transito quando a coleta foi autorizada."""
+    pedido = Pedido.query.get_or_404(pedido_id)
+    if pedido.status != 'aguardando_coleta':
+        return jsonify({
+            'sucesso': False,
+            'mensagem': 'A confirmação manual só é permitida para pedidos em espera de coleta.'
+        }), 400
+
+    pedido.status = 'em_transito'
+    db.session.commit()
+    return jsonify({'sucesso': True, 'mensagem': 'Coleta confirmada e pedido movido para Em Trânsito.'})
 
 
 @pedidos_bp.route('/<int:pedido_id>/datas', methods=['POST'])

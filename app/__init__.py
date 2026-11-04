@@ -22,9 +22,10 @@ def _atualizar_schema():
         for coluna in db.session.execute(text('PRAGMA table_info(pedidos)')).mappings()
     }
 
-    for coluna in ('data_coleta', 'data_entrega'):
+    for coluna in ('data_coleta', 'data_entrega', 'nome_contato_fornecedor', 'email_fornecedor', 'telefone_fornecedor'):
         if coluna not in colunas_pedidos:
-            db.session.execute(text(f'ALTER TABLE pedidos ADD COLUMN {coluna} DATE'))
+            tipo = 'DATE' if coluna in {'data_coleta', 'data_entrega'} else 'VARCHAR(120)' if coluna in {'nome_contato_fornecedor', 'email_fornecedor'} else 'VARCHAR(30)'
+            db.session.execute(text(f'ALTER TABLE pedidos ADD COLUMN {coluna} {tipo}'))
 
     colunas_cotacoes = {
         coluna['name']
@@ -40,7 +41,10 @@ def _atualizar_schema():
         'observacao_resposta': 'TEXT',
         'data_resposta': 'DATETIME',
         'token_resposta_hash': 'VARCHAR(64)',
-        'token_expira_em': 'DATETIME'
+        'token_expira_em': 'DATETIME',
+        'token_aprovacao_hash': 'VARCHAR(64)',
+        'token_aprovacao_expira_em': 'DATETIME',
+        'data_resposta_aprovacao': 'DATETIME'
     }
     for coluna, tipo in novos_campos_cotacao.items():
         if coluna not in colunas_cotacoes:
@@ -48,6 +52,10 @@ def _atualizar_schema():
     db.session.execute(text(
         'CREATE UNIQUE INDEX IF NOT EXISTS uq_cotacoes_token_resposta_hash '
         'ON cotacoes (token_resposta_hash)'
+    ))
+    db.session.execute(text(
+        'CREATE UNIQUE INDEX IF NOT EXISTS uq_cotacoes_token_aprovacao_hash '
+        'ON cotacoes (token_aprovacao_hash)'
     ))
 
     colunas_pedidos = {

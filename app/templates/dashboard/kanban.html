@@ -226,6 +226,9 @@
                             <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                                 <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
                             </button>
+                            <button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size: 0.75rem;" onclick="confirmarColeta('{{ p.id }}')">
+                                <i class="fa-solid fa-truck-fast me-1"></i> Em trânsito
+                            </button>
                             <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
@@ -519,6 +522,37 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalContatoFornecedor" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-dark">Contato do fornecedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formContatoFornecedor">
+                    <div class="mb-3">
+                        <label for="nomeContatoFornecedor" class="form-label small fw-bold">Nome da pessoa</label>
+                        <input id="nomeContatoFornecedor" name="nome_contato_fornecedor" type="text" class="form-control" placeholder="Opcional">
+                    </div>
+                    <div class="mb-3">
+                        <label for="emailContatoFornecedor" class="form-label small fw-bold">E-mail</label>
+                        <input id="emailContatoFornecedor" name="email_fornecedor" type="email" class="form-control" placeholder="Opcional">
+                    </div>
+                    <div class="mb-3">
+                        <label for="telefoneContatoFornecedor" class="form-label small fw-bold">Telefone</label>
+                        <input id="telefoneContatoFornecedor" name="telefone_fornecedor" type="tel" class="form-control" placeholder="Opcional">
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Continuar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="modalObservacoesPedido" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -609,6 +643,29 @@
 </div>
 
 <script>
+function confirmarColeta(pedidoId) {
+    if (!confirm('Confirmar a coleta e mover este pedido para Em Trânsito?')) {
+        return;
+    }
+
+    fetch('/pedidos/' + pedidoId + '/confirmar-coleta', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.sucesso) {
+            carregarTela('/kanban');
+        } else {
+            alert(data.mensagem || 'Não foi possível confirmar a coleta.');
+        }
+    })
+    .catch(error => console.error('Erro ao confirmar coleta:', error));
+}
+
 function excluirPedido(pedidoId, numeroPedido) {
     if (!confirm(`Deseja excluir o pedido ${numeroPedido}? Esta ação removerá o pedido e suas cotações do banco de dados.`)) {
         return;
@@ -980,7 +1037,36 @@ function enviarCotacao(cotacaoId) {
     .catch(() => alert('Não foi possível enviar a solicitação.'));
 }
 
-function selecionarVencedora(cotacaoId, justificativa = '') {
+function abrirModalContatoFornecedor(cotacaoId, justificativa = '') {
+    const formulario = document.getElementById('formContatoFornecedor');
+    formulario.dataset.cotacaoId = String(cotacaoId);
+    formulario.dataset.justificativa = justificativa || '';
+    formulario.reset();
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalContatoFornecedor'));
+    modal.show();
+}
+
+document.getElementById('formContatoFornecedor')?.addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formulario = event.currentTarget;
+    const cotacaoId = Number(formulario.dataset.cotacaoId || 0);
+    const justificativa = formulario.dataset.justificativa || '';
+    const dadosFornecedor = {
+        nome_contato_fornecedor: formulario.elements.nome_contato_fornecedor.value.trim(),
+        email_fornecedor: formulario.elements.email_fornecedor.value.trim(),
+        telefone_fornecedor: formulario.elements.telefone_fornecedor.value.trim()
+    };
+
+    bootstrap.Modal.getInstance(document.getElementById('modalContatoFornecedor'))?.hide();
+    selecionarVencedora(cotacaoId, justificativa, dadosFornecedor);
+});
+
+function selecionarVencedora(cotacaoId, justificativa = '', dadosFornecedor = {}) {
+    if (!dadosFornecedor || Object.keys(dadosFornecedor).length === 0) {
+        abrirModalContatoFornecedor(cotacaoId, justificativa);
+        return;
+    }
+
     if (!confirm('Deseja selecionar esta cotação como vencedora? O pedido será movido para "Aguardando Coleta".')) {
         return;
     }
@@ -991,7 +1077,12 @@ function selecionarVencedora(cotacaoId, justificativa = '') {
             'X-Requested-With': 'XMLHttpRequest',
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ justificativa: justificativa })
+        body: JSON.stringify({
+            justificativa: justificativa,
+            nome_contato_fornecedor: dadosFornecedor.nome_contato_fornecedor || '',
+            email_fornecedor: dadosFornecedor.email_fornecedor || '',
+            telefone_fornecedor: dadosFornecedor.telefone_fornecedor || ''
+        })
     })
     .then(res => res.json())
     .then(data => {
@@ -1014,7 +1105,7 @@ function selecionarVencedora(cotacaoId, justificativa = '') {
                 alert('A justificativa é obrigatória para selecionar uma cotação mais cara.');
                 return;
             }
-            selecionarVencedora(cotacaoId, texto.trim());
+            abrirModalContatoFornecedor(cotacaoId, texto.trim());
         } else {
             alert(data.mensagem || 'Não foi possível selecionar a cotação.');
         }

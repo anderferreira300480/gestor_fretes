@@ -30,12 +30,13 @@ def index():
     empresa_id = request.args.get('empresa_id', type=int)
     _arquivar_entregas_expiradas()
 
-    # A transição é feita quando o dashboard é acessado; não há tarefa em
-    # segundo plano para atualizar pedidos automaticamente.
+    # A transição automática só acontece quando a coleta foi programada para o
+    # dia atual. Se a data ainda não chegou, o pedido permanece em espera até
+    # que o usuário confirme manualmente a coleta.
     pedidos_para_atualizar = Pedido.query.filter(
         Pedido.status == 'aguardando_coleta',
         Pedido.data_coleta.isnot(None),
-        Pedido.data_coleta <= date.today()
+        Pedido.data_coleta == date.today()
     ).all()
     if pedidos_para_atualizar:
         for pedido in pedidos_para_atualizar:
