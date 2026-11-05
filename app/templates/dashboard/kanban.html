@@ -106,6 +106,209 @@
     .kanban-card-actions .btn-outline-danger {
         grid-column: 3;
     }
+
+    /* Glassmorphism refinement for dashboard cards and column panels */
+    .kanban-shell {
+        background: transparent;
+    }
+
+    .kanban-toolbar {
+        background: rgba(17, 27, 39, 0.46) !important;
+        border: 1px solid rgba(255,255,255,0.14) !important;
+        backdrop-filter: blur(18px) saturate(1.4);
+        -webkit-backdrop-filter: blur(18px) saturate(1.4);
+        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.18) !important;
+    }
+
+    .kanban-toolbar h3,
+    .kanban-toolbar .small,
+    .kanban-toolbar .text-muted,
+    .kanban-toolbar .fw-semibold,
+    .kanban-toolbar .fw-bold,
+    .kanban-toolbar .text-dark,
+    .kanban-toolbar .form-select,
+    .kanban-toolbar .btn {
+        color: #edf6ff !important;
+    }
+
+    .kanban-toolbar .bg-white,
+    .kanban-toolbar .border,
+    .kanban-toolbar .shadow-sm {
+        background: rgba(27, 39, 53, 0.46) !important;
+        border-color: rgba(255,255,255,0.12) !important;
+        box-shadow: none !important;
+    }
+
+    .kanban-column > .card {
+        background: linear-gradient(180deg, rgba(18, 25, 36, 0.68), rgba(12, 18, 27, 0.72)) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        box-shadow: 0 18px 34px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+    }
+
+    .kanban-column > .card .card-header {
+        background: linear-gradient(135deg, rgba(23, 38, 52, 0.9), rgba(18, 28, 37, 0.92)) !important;
+        color: #edf6ff !important;
+        border-bottom: 1px solid rgba(255,255,255,0.12) !important;
+    }
+
+    .kanban-column > .card .card-body {
+        background: rgba(15, 23, 34, 0.32) !important;
+    }
+
+    .kanban-column .card-body .card {
+        background: rgba(20, 30, 42, 0.58) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+    }
+
+    .kanban-column .card small,
+    .kanban-column .card .text-secondary,
+    .kanban-column .card .text-muted,
+    .kanban-column .card .text-dark,
+    .kanban-column .card .fw-bold,
+    .kanban-column .card b,
+    .kanban-column .card .d-block {
+        color: #edf6ff !important;
+    }
+
+    .kanban-column .card .text-secondary,
+    .kanban-column .card small {
+        opacity: 0.82;
+    }
+
+    .kanban-column .card .btn-outline-primary,
+    .kanban-column .card .btn-outline-secondary,
+    .kanban-column .card .btn-outline-success,
+    .kanban-column .card .btn-outline-danger,
+    .kanban-column .card .btn-outline-warning,
+    .kanban-column .card .btn-primary,
+    .kanban-column .card .btn-success,
+    .kanban-column .card .btn-warning {
+        border-color: rgba(255,255,255,0.12) !important;
+        background: rgba(255,255,255,0.04) !important;
+        color: #edf6ff !important;
+        backdrop-filter: blur(6px);
+    }
+
+    .kanban-column .card .btn-success {
+        background: linear-gradient(135deg, rgba(111, 232, 195, 0.9), rgba(52, 163, 128, 0.9)) !important;
+        color: #061b17 !important;
+    }
+
+    .kanban-column .card .btn-warning {
+        background: linear-gradient(135deg, rgba(255, 209, 123, 0.9), rgba(241, 160, 76, 0.9)) !important;
+        color: #20180b !important;
+    }
+
+    .kanban-column .card .btn-primary {
+        background: linear-gradient(135deg, rgba(126, 231, 255, 0.9), rgba(82, 113, 255, 0.9)) !important;
+        color: #03171f !important;
+    }
+
+    .kanban-column .card .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14) !important;
+    }
+
+    .kanban-column .card .border-top {
+        border-color: rgba(255,255,255,0.09) !important;
+    }
+
+    .kanban-column .card .card-header.bg-warning,
+    .kanban-column .card .card-header.bg-primary,
+    .kanban-column .card .card-header.bg-success,
+    .kanban-column .card .card-header.bg-danger {
+        box-shadow: inset 0 -1px 0 rgba(255,255,255,0.06);
+    }
+
+    .kanban-column .card .bg-white {
+        background: rgba(20, 30, 42, 0.58) !important;
+    }
+
+    .kanban-column .card .bg-warning-subtle,
+    .kanban-column .card .bg-info-subtle,
+    .kanban-column .card .bg-success-subtle,
+    .kanban-column .card .bg-danger-subtle {
+        background: rgba(19, 31, 43, 0.62) !important;
+    }
+
+    .kanban-column .card .card-header.bg-warning,
+    .kanban-column .card .card-header.bg-primary,
+    .kanban-column .card .card-header.bg-success,
+    .kanban-column .card .card-header.bg-danger {
+        color: #edf6ff !important;
+    }
+
+    /* Glassified column color accents */
+    .kanban-column.status-cotacao > .card {
+        background: linear-gradient(180deg, rgba(255, 196, 73, 0.18), rgba(21, 31, 43, 0.7)) !important;
+        border: 1px solid rgba(255, 196, 73, 0.32) !important;
+    }
+
+    .kanban-column.status-cotacao > .card > .card-header {
+        background: linear-gradient(135deg, rgba(246, 196, 83, 0.82), rgba(243, 155, 0, 0.8)) !important;
+        color: #1d1205 !important;
+    }
+
+    .kanban-column.status-cotacao > .card > .card-body {
+        background: rgba(255, 196, 73, 0.06) !important;
+    }
+
+    .kanban-column.status-coleta > .card {
+        background: linear-gradient(180deg, rgba(255, 153, 102, 0.18), rgba(21, 31, 43, 0.7)) !important;
+        border: 1px solid rgba(255, 153, 102, 0.32) !important;
+    }
+
+    .kanban-column.status-coleta > .card > .card-header {
+        background: linear-gradient(135deg, rgba(255, 159, 67, 0.82), rgba(255, 122, 26, 0.8)) !important;
+        color: #1c120a !important;
+    }
+
+    .kanban-column.status-coleta > .card > .card-body {
+        background: rgba(255, 153, 102, 0.06) !important;
+    }
+
+    .kanban-column.status-transito > .card {
+        background: linear-gradient(180deg, rgba(72, 196, 255, 0.18), rgba(21, 31, 43, 0.7)) !important;
+        border: 1px solid rgba(72, 196, 255, 0.32) !important;
+    }
+
+    .kanban-column.status-transito > .card > .card-header {
+        background: linear-gradient(135deg, rgba(74, 176, 255, 0.82), rgba(22, 111, 224, 0.8)) !important;
+        color: #eaf7ff !important;
+    }
+
+    .kanban-column.status-transito > .card > .card-body {
+        background: rgba(72, 196, 255, 0.06) !important;
+    }
+
+    .kanban-column.status-entregue > .card {
+        background: linear-gradient(180deg, rgba(88, 217, 162, 0.18), rgba(21, 31, 43, 0.7)) !important;
+        border: 1px solid rgba(88, 217, 162, 0.32) !important;
+    }
+
+    .kanban-column.status-entregue > .card > .card-header {
+        background: linear-gradient(135deg, rgba(88, 216, 153, 0.82), rgba(34, 159, 90, 0.8)) !important;
+        color: #091d17 !important;
+    }
+
+    .kanban-column.status-entregue > .card > .card-body {
+        background: rgba(88, 217, 162, 0.06) !important;
+    }
+
+    .kanban-column.status-ocorrencia > .card {
+        background: linear-gradient(180deg, rgba(255, 125, 125, 0.18), rgba(21, 31, 43, 0.7)) !important;
+        border: 1px solid rgba(255, 125, 125, 0.32) !important;
+    }
+
+    .kanban-column.status-ocorrencia > .card > .card-header {
+        background: linear-gradient(135deg, rgba(255, 122, 122, 0.82), rgba(217, 61, 74, 0.8)) !important;
+        color: #fff4f4 !important;
+    }
+
+    .kanban-column.status-ocorrencia > .card > .card-body {
+        background: rgba(255, 125, 125, 0.06) !important;
+    }
 </style>
 <div class="kanban-shell">
     <div class="kanban-toolbar d-flex justify-content-between align-items-center mb-4">
@@ -167,10 +370,10 @@
 
     <!-- QUADRO KANBAN (5 COLUNAS) -->
     <div class="row row-cols-1 row-cols-md-5 g-3 kanban-board">
-        <div class="col kanban-column">
-            <div class="card border-0 bg-warning-subtle h-100 shadow-sm">
-                <div class="card-header bg-warning text-dark text-center fw-bold border-0 py-2">
-                    📋 Em Cotação
+        <div class="col kanban-column status-cotacao">
+            <div class="card border-0 h-100 shadow-sm">
+                <div class="card-header text-center fw-bold border-0 py-2">
+                    <i class="bi bi-file-earmark-text me-2"></i>Em Cotação
                 </div>
                 <div class="card-body p-2 kanban-column-body" style="min-height: 260px;">
                     {% for p in kanban.em_cotacao %}
@@ -200,10 +403,10 @@
             </div>
         </div>
 
-        <div class="col kanban-column">
-            <div class="card border-0 shadow-sm h-100" style="background-color: #ffe0b2 !important;">
-                <div class="card-header text-white text-center fw-bold border-0 py-2" style="background-color: #ff9800 !important;">
-                    📦 Aguardando Coleta
+        <div class="col kanban-column status-coleta">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header text-center fw-bold border-0 py-2">
+                    <i class="bi bi-box-seam me-2"></i>Aguardando Coleta
                 </div>
                 <div class="card-body p-2 kanban-column-body" style="min-height: 260px;">
                     {% for p in kanban.aguardando_coleta %}
@@ -226,9 +429,6 @@
                             <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="abrirModalAnexos('{{ p.id }}', '{{ p.numero_pedido_compra }}')">
                                 <i class="fa-solid fa-paperclip me-1"></i> Anexos ({{ p.anexos|length }})
                             </button>
-                            <button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size: 0.75rem;" onclick="confirmarColeta('{{ p.id }}')">
-                                <i class="fa-solid fa-truck-fast me-1"></i> Em trânsito
-                            </button>
                             <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="excluirPedido('{{ p.id }}', '{{ p.numero_pedido_compra }}')" title="Excluir pedido">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
@@ -239,10 +439,10 @@
             </div>
         </div>
 
-        <div class="col kanban-column">
-            <div class="card border-0 bg-info-subtle h-100 shadow-sm">
-                <div class="card-header bg-primary text-white text-center fw-bold border-0 py-2">
-                    🚚 Em Trânsito
+        <div class="col kanban-column status-transito">
+            <div class="card border-0 h-100 shadow-sm">
+                <div class="card-header text-center fw-bold border-0 py-2">
+                    <i class="bi bi-truck me-2"></i>Em Trânsito
                 </div>
                 <div class="card-body p-2 kanban-column-body" style="min-height: 260px;">
                     {% for p in kanban.em_transito %}
@@ -285,10 +485,10 @@
             </div>
         </div>
 
-        <div class="col kanban-column">
-            <div class="card border-0 bg-success-subtle h-100 shadow-sm">
-                <div class="card-header bg-success text-white text-center fw-bold border-0 py-2">
-                    ✅ Entregue
+        <div class="col kanban-column status-entregue">
+            <div class="card border-0 h-100 shadow-sm">
+                <div class="card-header text-center fw-bold border-0 py-2">
+                    <i class="bi bi-check2-circle me-2"></i>Entregue
                 </div>
                 <div class="card-body p-2 kanban-column-body" style="min-height: 260px;">
                     {% for p in kanban.entregue %}
@@ -319,10 +519,10 @@
             </div>
         </div>
 
-        <div class="col kanban-column">
-            <div class="card border-0 bg-danger-subtle h-100 shadow-sm">
-                <div class="card-header bg-danger text-white text-center fw-bold border-0 py-2">
-                    ⚠️ Ocorrência/Sinistro
+        <div class="col kanban-column status-ocorrencia">
+            <div class="card border-0 h-100 shadow-sm">
+                <div class="card-header text-center fw-bold border-0 py-2">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Ocorrência/Sinistro
                 </div>
                 <div class="card-body p-2 kanban-column-body" style="min-height: 260px;">
                     {% for p in kanban.ocorrencia %}
@@ -1067,7 +1267,7 @@ function selecionarVencedora(cotacaoId, justificativa = '', dadosFornecedor = {}
         return;
     }
 
-    if (!confirm('Deseja selecionar esta cotação como vencedora? O pedido será movido para "Aguardando Coleta".')) {
+    if (!confirm('Deseja selecionar esta cotação como vencedora? O pedido permanecerá em cotação até a transportadora confirmar as datas de coleta e entrega.')) {
         return;
     }
 

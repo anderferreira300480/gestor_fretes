@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#eeefef"/>
+  <rect x="52" y="42" width="1496" height="816" rx="30" fill="#f5f7f9"/>
+  <rect x="88" y="84" width="326" height="730" rx="24" fill="#ffffff"/>
+  <rect x="432" y="84" width="1080" height="730" rx="24" fill="#ffffff"/>
+
+  <rect x="116" y="116" width="270" height="54" rx="14" fill="#edf4fd"/>
+  <text x="148" y="151" font-family="Segoe UI, Arial" font-size="19" font-weight="700" fill="#183a52">Gestor Fretes</text>
+  <g>
+    <rect x="116" y="200" width="270" height="82" rx="16" fill="#f4fbff"/>
+    <text x="140" y="236" font-family="Segoe UI, Arial" font-size="14" fill="#6685a0">Pedidos ativos</text>
+    <text x="140" y="260" font-family="Segoe UI, Arial" font-size="28" font-weight="800" fill="#17364d">126</text>
+  </g>
+  <g>
+    <rect x="116" y="306" width="270" height="82" rx="16" fill="#fff7ed"/>
+    <text x="140" y="342" font-family="Segoe UI, Arial" font-size="14" fill="#8e6b39">Aguardando coleta</text>
+    <text x="140" y="366" font-family="Segoe UI, Arial" font-size="28" font-weight="800" fill="#1a3d5c">18</text>
+  </g>
+  <g>
+    <rect x="116" y="412" width="270" height="82" rx="16" fill="#f3fbf7"/>
+    <text x="140" y="448" font-family="Segoe UI, Arial" font-size="14" fill="#537c63">Entregues</text>
+    <text x="140" y="472" font-family="Segoe UI, Arial" font-size="28" font-weight="800" fill="#1a3d5c">42</text>
+  </g>
+  <g>
+    <rect x="116" y="518" width="270" height="82" rx="16" fill="#fff1f1"/>
+    <text x="140" y="554" font-family="Segoe UI, Arial" font-size="14" fill="#8d5d5d">Ocorrências</text>
+    <text x="140" y="578" font-family="Segoe UI, Arial" font-size="28" font-weight="800" fill="#1a3d5c">07</text>
+  </g>
+
+  <g>
+    <rect x="470" y="120" width="255" height="150" rx="22" fill="#ecf3f9"/>
+    <text x="500" y="160" font-family="Segoe UI, Arial" font-size="18" font-weight="700" fill="#244866">Em cotação</text>
+    <text x="500" y="220" font-family="Segoe UI, Arial" font-size="38" font-weight="800" fill="#17364d">24</text>
+  </g>
+  <g>
+    <rect x="750" y="120" width="255" height="150" rx="22" fill="#fff6df"/>
+    <text x="780" y="160" font-family="Segoe UI, Arial" font-size="18" font-weight="700" fill="#7d5f26">Aguardando coleta</text>
+    <text x="780" y="220" font-family="Segoe UI, Arial" font-size="38" font-weight="800" fill="#17364d">16</text>
+  </g>
+  <g>
+    <rect x="1030" y="120" width="255" height="150" rx="22" fill="#eafaf2"/>
+    <text x="1060" y="160" font-family="Segoe UI, Arial" font-size="18" font-weight="700" fill="#2b6c52">Em trânsito</text>
+    <text x="1060" y="220" font-family="Segoe UI, Arial" font-size="38" font-weight="800" fill="#17364d">18</text>
+  </g>
+  <g>
+    <rect x="1310" y="120" width="160" height="150" rx="22" fill="#edf2fb"/>
+    <text x="1338" y="160" font-family="Segoe UI, Arial" font-size="18" font-weight="700" fill="#3e5870">Entregues</text>
+    <text x="1350" y="220" font-family="Segoe UI, Arial" font-size="32" font-weight="800" fill="#17364d">42</text>
+  </g>
+
+  <g>
+    <rect x="470" y="300" width="1000" height="170" rx="18" fill="#f9fafb" stroke="#e7edf3"/>
+    <text x="500" y="338" font-family="Segoe UI, Arial" font-size="18" font-weight="700" fill="#1d2d3a">Monitoramento da operação</text>
+    <line x1="500" y1="390" x2="1400" y2="390" stroke="#dfe8ef" stroke-width="4"/>
+    <path d="M500 390 L620 360 L750 374 L890 330 L1010 352 L1160 290 L1400 315" fill="none" stroke="#2d9cdb" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="620" cy="360" r="7" fill="#2d9cdb"/>
+    <circle cx="890" cy="330" r="7" fill="#2d9cdb"/>
+    <circle cx="1160" cy="290" r="7" fill="#2d9cdb"/>
+  </g>
+
+  <g>
+    <rect x="470" y="500" width="1000" height="260" rx="18" fill="#f9fafb" stroke="#e7edf3"/>
+    <text x="500" y="536" font-family="Segoe UI, Arial" font-size="18" font-weight="700" fill="#1d2d3a">Entregas em destaque</text>
+    <g>
+      <rect x="500" y="565" width="930" height="64" rx="14" fill="#ffffff" stroke="#edf1f4"/>
+      <text x="528" y="605" font-family="Segoe UI, Arial" font-size="18" font-weight="700" fill="#17364d">Pedido 243</text>
+      <text x="760" y="605" font-family="Segoe UI, Arial" font-size="16" fill="#65829a">Empresa Norte</text>
+      <text x="1100" y="605" font-family="Segoe UI, Arial" font-size="16" fill="#65829a">Coleta 04/11</text>
+      <rect x="1300" y="585" width="90" height="22" rx="11" fill="#dbf1e7"/>
+      <text x="1324" y="602" font-family="Segoe UI, Arial" font-size="12" font-weight="700" fill="#2a7d59">OK</text>
+    </g>
+    <g>
+      <rect x="500" y="645" width="930" height="64" rx="14" fill="#ffffff" stroke="#edf1f4"/>
+      <text x="528" y="685" font-family="Segoe UI, Arial" font-size="18" font-weight="700" fill="#17364d">Pedido 248</text>
+      <text x="760" y="685" font-family="Segoe UI, Arial" font-size="16" fill="#65829a">Empresa Sul</text>
+      <text x="1100" y="685" font-family="Segoe UI, Arial" font-size="16" fill="#65829a">Coleta 05/11</text>
+      <rect x="1300" y="665" width="90" height="22" rx="11" fill="#fff0d9"/>
+      <text x="1312" y="682" font-family="Segoe UI, Arial" font-size="12" font-weight="700" fill="#9c7122">PEND.</text>
+    </g>
+  </g>
+</svg>

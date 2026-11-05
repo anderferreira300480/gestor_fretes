@@ -395,10 +395,10 @@ def excluir_cotacao(cotacao_id):
     return jsonify({'sucesso': True, 'mensagem': 'Cotação excluída com sucesso.'})
 
 
-# 3. Selecionar Cotação Vencedora e Atualizar Status do Pedido para 'aguardando_coleta'
+# 3. Selecionar Cotação Vencedora e aguardar as datas da transportadora
 @pedidos_bp.route('/cotacoes/<int:cotacao_id>/selecionar_vencedora', methods=['POST'])
 def selecionar_vencedora(cotacao_id):
-    """Aprova uma cotação, envia o e-mail de aprovação e move o pedido para aguardando coleta."""
+    """Aprova uma cotação e aguarda a confirmação das datas de coleta e entrega pela transportadora."""
     cotacao = CotacaoFrete.query.get_or_404(cotacao_id)
     pedido = Pedido.query.get_or_404(cotacao.pedido_id)
 
@@ -435,7 +435,6 @@ def selecionar_vencedora(cotacao_id):
         pedido.nome_contato_fornecedor = nome_contato_fornecedor or pedido.nome_contato_fornecedor
         pedido.email_fornecedor = email_fornecedor or pedido.email_fornecedor
         pedido.telefone_fornecedor = telefone_fornecedor or pedido.telefone_fornecedor
-        pedido.status = 'aguardando_coleta'
 
         token = secrets.token_urlsafe(32)
         cotacao.token_aprovacao_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()

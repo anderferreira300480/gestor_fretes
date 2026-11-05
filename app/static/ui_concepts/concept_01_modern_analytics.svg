@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bg1" x1="0" x2="1">
+      <stop offset="0%" stop-color="#f4f7fb"/>
+      <stop offset="100%" stop-color="#edf5f8"/>
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0" x2="1">
+      <stop offset="0%" stop-color="#16a7b8"/>
+      <stop offset="100%" stop-color="#0b6bb2"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg1)"/>
+  <rect x="40" y="30" width="1520" height="840" rx="30" fill="#ffffff" opacity="0.95"/>
+  <rect x="70" y="70" width="1460" height="82" rx="18" fill="#f6f9fb"/>
+  <circle cx="111" cy="111" r="18" fill="#0b6bb2" opacity="0.12"/>
+  <text x="150" y="120" font-family="Segoe UI, Arial" font-size="20" font-weight="700" fill="#163146">Gestor Fretes</text>
+  <rect x="1130" y="90" width="180" height="42" rx="12" fill="#edf8fb"/>
+  <text x="1185" y="117" font-family="Segoe UI, Arial" font-size="15" font-weight="600" fill="#1f5d7a">Empresa</text>
+  <rect x="1325" y="90" width="160" height="42" rx="12" fill="url(#cyanGrad)"/>
+  <text x="1368" y="117" font-family="Segoe UI, Arial" font-size="15" font-weight="700" fill="#ffffff">+ Novo pedido</text>
+
+  <g>
+    <rect x="90" y="190" width="260" height="130" rx="24" fill="#eafafc"/>
+    <circle cx="142" cy="245" r="26" fill="#16a7b8" opacity="0.18"/>
+    <text x="182" y="238" font-family="Segoe UI, Arial" font-size="14" fill="#3d6376">Economia total</text>
+    <text x="182" y="275" font-family="Segoe UI, Arial" font-size="30" font-weight="800" fill="#163146">R$ 14.8k</text>
+  </g>
+  <g>
+    <rect x="380" y="190" width="260" height="130" rx="24" fill="#eef5ff"/>
+    <circle cx="432" cy="245" r="26" fill="#4f7cff" opacity="0.18"/>
+    <text x="472" y="238" font-family="Segoe UI, Arial" font-size="14" fill="#3d6376">Valor médio</text>
+    <text x="472" y="275" font-family="Segoe UI, Arial" font-size="30" font-weight="800" fill="#163146">R$ 1.8k</text>
+  </g>
+  <g>
+    <rect x="670" y="190" width="260" height="130" rx="24" fill="#fff0eb"/>
+    <circle cx="722" cy="245" r="26" fill="#f2994a" opacity="0.2"/>
+    <text x="762" y="238" font-family="Segoe UI, Arial" font-size="14" fill="#7a4d28">Aguardando coleta</text>
+    <text x="762" y="275" font-family="Segoe UI, Arial" font-size="30" font-weight="800" fill="#163146">18</text>
+  </g>
+  <g>
+    <rect x="960" y="190" width="260" height="130" rx="24" fill="#ebfff3"/>
+    <circle cx="1012" cy="245" r="26" fill="#32b579" opacity="0.18"/>
+    <text x="1052" y="238" font-family="Segoe UI, Arial" font-size="14" fill="#2b6a4d">Entregues</text>
+    <text x="1052" y="275" font-family="Segoe UI, Arial" font-size="30" font-weight="800" fill="#163146">42</text>
+  </g>
+
+  <g>
+    <rect x="90" y="350" width="330" height="420" rx="26" fill="#f7fafc"/>
+    <rect x="110" y="370" width="290" height="52" rx="14" fill="#0d3d59"/>
+    <text x="140" y="404" font-family="Segoe UI, Arial" font-size="18" font-weight="700" fill="#ffffff">Em cotação</text>
+    <g>
+      <rect x="118" y="450" width="270" height="120" rx="18" fill="#ffffff"/>
+      <text x="132" y="486" font-family="Segoe UI, Arial" font-size="13" fill="#4e6478">Pedido 24/2025</text>
+      <text x="132" y="520" font-family="Segoe UI, Arial" font-size="26" font-weight="700" fill="#163146">Empresa Norte</text>
+      <text x="132" y="548" font-family="Segoe UI, Arial" font-size="13" fill="#4e6478">Fornecedor: Copelmi S/A</text>
+    </g>
+    <g>
+      <rect x="118" y="590" width="270" height="120" rx="18" fill="#ffffff"/>
+      <text x="132" y="626" font-family="Segoe UI, Arial" font-size="13" fill="#4e6478">Pedido 25/2025</text>
+      <text x="132" y="660" font-family="Segoe UI, Arial" font-size="24" font-weight="700" fill="#163146">Empresa Sul</text>
+      <text x="132" y="688" font-family="Segoe UI, Arial" font-size="13" fill="#4e6478">3 cotações pendentes</text>
+    </g>
+  </g>
+
+  <g>
+    <rect x="455" y="350" width="330" height="420" rx="26" fill="#fffadf"/>
+    <rect x="475" y="370" width="290" height="52" rx="14" fill="#ffb703"/>
+    <text x="510" y="404" font-family="Segoe UI, Arial" font-size="18" font-weight="700" fill="#ffffff">Aguardando coleta</text>
+    <g>
+      <rect x="484" y="450" width="270" height="140" rx="18" fill="#ffffff"/>
+      <text x="500" y="486" font-family="Segoe UI, Arial" font-size="13" fill="#4e6478">Pedido 17/2025</text>
+      <text x="500" y="520" font-family="Segoe UI, Arial" font-size="24" font-weight="700" fill="#163146">Coleta 04/11</text>
+      <text x="500" y="548" font-family="Segoe UI, Arial" font-size="13" fill="#4e6478">Entrega 07/11</text>
+      <rect x="500" y="560" width="110" height="12" rx="6" fill="#ffd166"/>
+    </g>
+  </g>
+
+  <g>
+    <rect x="820" y="350" width="330" height="420" rx="26" fill="#eaf9ff"/>
+    <rect x="840" y="370" width="290" height="52" rx="14" fill="#1d9bf0"/>
+    <text x="878" y="404" font-family="Segoe UI, Arial" font-size="18" font-weight="700" fill="#ffffff">Em trânsito</text>
+    <g>
+      <rect x="850" y="450" width="270" height="140" rx="18" fill="#ffffff"/>
+      <text x="864" y="486" font-family="Segoe UI, Arial" font-size="13" fill="#4e6478">Pedido 08/2025</text>
+      <text x="864" y="520" font-family="Segoe UI, Arial" font-size="24" font-weight="700" fill="#163146">Rota Norte</text>
+      <text x="864" y="548" font-family="Segoe UI, Arial" font-size="13" fill="#4e6478">Taxa 12h • 78%</text>
+      <rect x="864" y="560" width="150" height="12" rx="6" fill="#7cc8ff"/>
+    </g>
+  </g>
+
+  <g>
+    <rect x="1185" y="350" width="330" height="420" rx="26" fill="#f3fff8"/>
+    <rect x="1205" y="370" width="290" height="52" rx="14" fill="#2ec27e"/>
+    <text x="1250" y="404" font-family="Segoe UI, Arial" font-size="18" font-weight="700" fill="#ffffff">Entregues</text>
+    <g>
+      <rect x="1215" y="450" width="270" height="140" rx="18" fill="#ffffff"/>
+      <text x="1230" y="486" font-family="Segoe UI, Arial" font-size="13" fill="#4e6478">Pedido 01/2025</text>
+      <text x="1230" y="520" font-family="Segoe UI, Arial" font-size="24" font-weight="700" fill="#163146">Delivery final</text>
+      <text x="1230" y="548" font-family="Segoe UI, Arial" font-size="13" fill="#4e6478">Confirmação em 08:15</text>
+      <rect x="1230" y="560" width="130" height="12" rx="6" fill="#7ee0a8"/>
+    </g>
+  </g>
+</svg>

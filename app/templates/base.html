@@ -254,6 +254,394 @@
             overflow-wrap: anywhere;
             line-height: 1.15;
         }
+
+        /* Dark Premium Theme Overlay - only visual styling */
+        :root {
+            --glass-bg-1: #07111c;
+            --glass-bg-2: #0d1c2a;
+            --glass-surface: rgba(17, 30, 43, 0.48);
+            --glass-surface-strong: rgba(22, 34, 47, 0.72);
+            --glass-surface-soft: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --glass-highlight: rgba(123, 219, 255, 0.28);
+            --glass-text: #ebf7ff;
+            --glass-text-soft: #b8d3e6;
+            --glass-cyan: #7ee7ff;
+            --glass-violet: #8ba7ff;
+            --glass-teal: #6fe8c3;
+            --glass-gold: #ffd47b;
+            --glass-orange: #ffab75;
+            --glass-red: #ff7a90;
+            --glass-blue: #7bb5ff;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(126, 231, 255, 0.18), transparent 28%),
+                radial-gradient(circle at top right, rgba(139, 167, 255, 0.16), transparent 26%),
+                linear-gradient(180deg, var(--glass-bg-1) 0%, var(--glass-bg-2) 100%) !important;
+            color: var(--glass-text) !important;
+        }
+
+        #conteudo-principal {
+            background: transparent !important;
+        }
+
+        .topbar-header {
+            background: rgba(12, 21, 31, 0.56) !important;
+            backdrop-filter: blur(18px) saturate(1.4);
+            -webkit-backdrop-filter: blur(18px) saturate(1.4);
+            border-bottom: 1px solid var(--glass-border) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16) !important;
+        }
+
+        .sidebar-menu {
+            background: rgba(11, 19, 27, 0.48) !important;
+            backdrop-filter: blur(18px) saturate(1.5);
+            -webkit-backdrop-filter: blur(18px) saturate(1.5);
+            border-right: 1px solid var(--glass-border) !important;
+        }
+
+        .sidebar-menu .nav-link {
+            color: var(--glass-text-soft) !important;
+        }
+
+        .sidebar-menu .nav-link:hover,
+        .sidebar-menu .nav-link.active {
+            color: var(--glass-gold) !important;
+            background: linear-gradient(90deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02)) !important;
+            border-left: 3px solid var(--glass-gold) !important;
+            box-shadow: inset 0 0 18px rgba(255,255,255,0.03);
+        }
+
+        .dropdown-cadastros {
+            background: rgba(12, 21, 31, 0.72) !important;
+            border: 1px solid var(--glass-border) !important;
+            backdrop-filter: blur(18px) saturate(1.5);
+            -webkit-backdrop-filter: blur(18px) saturate(1.5);
+            box-shadow: 0 22px 38px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        .dropdown-cadastros .dropdown-item {
+            color: var(--glass-text) !important;
+        }
+
+        .dropdown-cadastros .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.06) !important;
+            color: var(--glass-gold) !important;
+        }
+
+        .topbar-header .topbar-brand,
+        .topbar-header .topbar-user {
+            text-shadow: 0 0 16px rgba(126, 231, 255, 0.18);
+        }
+
+        .topbar-header .topbar-brand:hover {
+            color: var(--glass-cyan) !important;
+        }
+
+        .kanban-toolbar {
+            background: rgba(17, 27, 39, 0.48) !important;
+            backdrop-filter: blur(20px) saturate(1.4);
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            border-color: var(--glass-border) !important;
+            box-shadow: 0 18px 40px rgba(7, 13, 20, 0.28) !important;
+        }
+
+        .kanban-toolbar h3,
+        .kanban-toolbar .text-muted,
+        .kanban-toolbar .small,
+        .kanban-toolbar .fw-semibold,
+        .kanban-toolbar .fw-bold,
+        .kanban-toolbar .text-dark,
+        .kanban-toolbar .form-select,
+        .kanban-toolbar .btn {
+            color: var(--glass-text) !important;
+        }
+
+        .kanban-toolbar .bg-white,
+        .kanban-toolbar .border,
+        .kanban-toolbar .shadow-sm,
+        .kanban-toolbar .form-select {
+            background: rgba(20, 32, 43, 0.58) !important;
+            border-color: var(--glass-border) !important;
+            box-shadow: none !important;
+        }
+
+        .card,
+        .card-body,
+        .card-header,
+        .card-footer,
+        .modal-content,
+        .list-group-item,
+        .table,
+        .table td,
+        .table th,
+        .dropdown-menu,
+        .form-control,
+        .form-select,
+        .input-group-text,
+        .accordion-item,
+        .accordion-body,
+        .accordion-header,
+        .offcanvas,
+        .toast,
+        .alert,
+        .nav-tabs .nav-link {
+            background-color: rgba(18, 31, 42, 0.5) !important;
+            color: var(--glass-text) !important;
+            border-color: var(--glass-border) !important;
+            backdrop-filter: blur(12px) saturate(1.2);
+            -webkit-backdrop-filter: blur(12px) saturate(1.2);
+        }
+
+        .card {
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+            border: 1px solid rgba(255,255,255,0.10) !important;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, rgba(17, 31, 42, 0.9), rgba(29, 47, 65, 0.8)) !important;
+            color: var(--glass-text) !important;
+            border-bottom: 1px solid var(--glass-border) !important;
+        }
+
+        .bg-white,
+        .bg-light,
+        .bg-body-tertiary,
+        .bg-success-subtle,
+        .bg-info-subtle,
+        .bg-warning-subtle,
+        .bg-danger-subtle,
+        .bg-primary-subtle,
+        .bg-secondary-subtle {
+            background: rgba(20, 31, 42, 0.55) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .text-dark,
+        .text-body,
+        .text-secondary,
+        .text-muted,
+        .small,
+        .text-info,
+        .text-success,
+        .text-warning,
+        .text-primary,
+        .text-danger {
+            color: var(--glass-text) !important;
+        }
+
+        .text-muted,
+        .small,
+        .text-secondary {
+            opacity: 0.82;
+        }
+
+        .btn {
+            border-color: rgba(255,255,255,0.12) !important;
+            box-shadow: none !important;
+        }
+
+        .btn-outline-primary,
+        .btn-outline-secondary,
+        .btn-outline-success,
+        .btn-outline-danger,
+        .btn-outline-info,
+        .btn-outline-warning {
+            background: rgba(255,255,255,0.04) !important;
+            color: var(--glass-text) !important;
+            backdrop-filter: blur(8px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(126, 231, 255, 0.9), rgba(92, 132, 255, 0.9)) !important;
+            border-color: rgba(126, 231, 255, 0.7) !important;
+            color: #061720 !important;
+            box-shadow: 0 10px 24px rgba(126, 231, 255, 0.22) !important;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, rgba(255, 122, 144, 0.9), rgba(221, 74, 94, 0.9)) !important;
+            border-color: rgba(255, 122, 144, 0.7) !important;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, rgba(111, 232, 195, 0.88), rgba(52, 163, 128, 0.9)) !important;
+            border-color: rgba(111, 232, 195, 0.7) !important;
+            color: #061b17 !important;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, rgba(123, 181, 255, 0.9), rgba(82, 113, 255, 0.9)) !important;
+            border-color: rgba(123, 181, 255, 0.7) !important;
+            color: #051522 !important;
+        }
+
+        .form-control,
+        .form-select,
+        .input-group-text {
+            background: rgba(9, 17, 24, 0.64) !important;
+            border-color: var(--glass-border) !important;
+            color: var(--glass-text) !important;
+            backdrop-filter: blur(8px);
+        }
+
+        .form-select option,
+        .form-control option {
+            background-color: #111d29 !important;
+            color: var(--glass-text) !important;
+        }
+
+        .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: rgba(255, 255, 255, 0.02) !important;
+        }
+
+        .modal-backdrop {
+            background-color: rgba(5, 12, 18, 0.68) !important;
+            backdrop-filter: blur(6px);
+        }
+
+        .modal-content {
+            box-shadow: 0 22px 44px rgba(0, 0, 0, 0.32) !important;
+        }
+
+        .dropdown-menu,
+        .dropdown-item {
+            background: rgba(15, 25, 35, 0.7) !important;
+            color: var(--glass-text) !important;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.06) !important;
+            color: var(--glass-cyan) !important;
+        }
+
+        .border,
+        .border-top,
+        .border-bottom,
+        .border-start,
+        .border-end,
+        .border-0,
+        .shadow-sm,
+        .shadow {
+            border-color: var(--glass-border) !important;
+            box-shadow: none !important;
+        }
+
+        .kanban-column > .card {
+            background: linear-gradient(180deg, rgba(17, 30, 42, 0.66), rgba(13, 21, 32, 0.72)) !important;
+            border: 1px solid rgba(255,255,255,0.08) !important;
+            box-shadow: 0 20px 34px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+        }
+
+        .kanban-column > .card .card-header {
+            background: linear-gradient(135deg, rgba(36, 65, 89, 0.9), rgba(11, 26, 38, 0.92)) !important;
+            color: var(--glass-text) !important;
+            border-bottom: 1px solid var(--glass-border) !important;
+        }
+
+        .kanban-column .card-body .card {
+            background: rgba(13, 23, 33, 0.7) !important;
+        }
+
+        .modal {
+            --bs-modal-bg: rgba(18, 31, 42, 0.72) !important;
+        }
+
+        .modal-content {
+            background: linear-gradient(180deg, rgba(24, 37, 52, 0.92) 0%, rgba(15, 24, 35, 0.9) 100%) !important;
+            border: 1px solid var(--glass-border) !important;
+            box-shadow: 0 20px 42px rgba(0, 0, 0, 0.24) !important;
+            backdrop-filter: blur(18px) saturate(1.4);
+            -webkit-backdrop-filter: blur(18px) saturate(1.4);
+        }
+
+        .modal-header,
+        .modal-footer,
+        .modal-body {
+            background: transparent !important;
+            border-color: var(--glass-border) !important;
+            color: var(--glass-text) !important;
+        }
+
+        .modal-header.bg-light,
+        .modal-header.bg-warning-subtle,
+        .modal-header.bg-success-subtle,
+        .modal-header.bg-danger-subtle,
+        .modal-header.bg-info-subtle {
+            background: linear-gradient(135deg, rgba(27, 43, 58, 0.86), rgba(20, 31, 42, 0.88)) !important;
+            border-bottom: 1px solid var(--glass-border) !important;
+        }
+
+        .modal-title,
+        .modal-body,
+        .modal-body *,
+        .modal-footer,
+        .modal-footer *,
+        .modal-header * {
+            color: var(--glass-text) !important;
+        }
+
+        .modal .bg-light,
+        .modal .bg-warning-subtle,
+        .modal .bg-success-subtle,
+        .modal .bg-danger-subtle,
+        .modal .bg-info-subtle,
+        #resumoPedidoCotacao,
+        #detalheCargaCotacao,
+        #formNovaCotacao,
+        #formEditarCotacao,
+        #formNovoAnexo,
+        .table-responsive,
+        .table,
+        .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background: rgba(17, 29, 40, 0.7) !important;
+            border-color: var(--glass-border) !important;
+            color: var(--glass-text) !important;
+        }
+
+        .modal .alert-success,
+        .modal .alert-warning,
+        .modal .alert-info,
+        .modal .alert-danger {
+            background: rgba(17, 27, 39, 0.8) !important;
+            border-color: var(--glass-border) !important;
+            color: var(--glass-text) !important;
+        }
+
+        .modal .table-dark {
+            background: linear-gradient(135deg, rgba(24, 36, 48, 0.9), rgba(18, 27, 39, 0.88)) !important;
+            color: var(--glass-text) !important;
+        }
+
+        .modal .btn-close {
+            filter: invert(1) grayscale(100%) brightness(100%);
+        }
+
+        .btn-primary:hover,
+        .btn-success:hover,
+        .btn-info:hover,
+        .btn-danger:hover,
+        .btn-outline-primary:hover,
+        .btn-outline-secondary:hover,
+        .btn-outline-success:hover,
+        .btn-outline-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .card {
+            border: 1px solid rgba(255,255,255,0.10) !important;
+        }
+
+        .bi,
+        .fa-solid,
+        .fa-regular,
+        .fa-brands {
+            filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0));
+        }
     </style>
 </head>
 <body>
